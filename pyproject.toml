@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "django-yp-admin"
-version = "0.1.0a1"
+version = "0.1.0a2"
 description = "htmx-powered theme + helpers for django.contrib.admin. Picnic CSS, native HTML5 widgets, two mandatory dependencies."
 readme = "README.md"
 requires-python = ">=3.11"

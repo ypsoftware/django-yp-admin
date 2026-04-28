@@ -1,6 +1,21 @@
 # Changelog
 
-## 0.1.0 — pre-alpha (unreleased)
+## 0.1.0a2 — 2026-04-28
+
+Bug fixes from real-world demo project run on Django 4.2 / 5.0 / 5.1.
+
+### Critical fixes
+
+- **Django 5.1 compat**: `admin/includes/fieldset.html` used the `length_is` filter which was removed in Django 5.1. Add/change forms raised `TemplateSyntaxError: Invalid filter: 'length_is'` on every render. Replaced with `|length == N`.
+- **Sortable inline never rendered**: the template `admin/yp_admin/edit_inline/tabular_sortable.html` (a) accessed `inline_admin_formset.opts.model._meta.app_label` (Django forbids leading-underscore attribute lookups in templates → hard error on every change_form with a sortable inline), and (b) overrode `{% block inline %}` which does not exist in `admin/edit_inline/tabular.html`, so even when the underscore bug was bypassed the wrapper div with `data-yp-sortable="true"` was never emitted and drag-and-drop reorder silently did not work.
+  - Replaced with a flat template that wraps `{% include "admin/edit_inline/tabular.html" %}` in a `yp-sortable-group` div carrying the data hooks.
+  - Underscore-attr lookup moved to a `yp_inline_reorder_url` template tag.
+
+### Tests
+
+- Added `tests/test_template_render.py` (3 tests): renders the actual change_form via `Client.get()` for both a plain ModelAdmin and one with a sortable inline. These fail loudly on the bugs above. Suite: 89 → 92.
+
+## 0.1.0a1 — pre-alpha (initial release)
 
 First public iteration. Repositioned from "drop-in replacement" to **htmx-powered theme + helpers** for `django.contrib.admin`.
 
