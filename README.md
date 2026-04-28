@@ -1,5 +1,12 @@
 # django-yp-admin
 
+[![PyPI version](https://img.shields.io/pypi/v/django-yp-admin?label=pypi)](https://pypi.org/project/django-yp-admin/)
+[![Python](https://img.shields.io/pypi/pyversions/django-yp-admin)](https://pypi.org/project/django-yp-admin/)
+[![Django](https://img.shields.io/pypi/djversions/django-yp-admin?label=django)](https://pypi.org/project/django-yp-admin/)
+[![CI](https://github.com/ypsoftware/django-yp-admin/actions/workflows/ci.yml/badge.svg)](https://github.com/ypsoftware/django-yp-admin/actions/workflows/ci.yml)
+[![Documentation](https://readthedocs.org/projects/django-yp-admin/badge/?version=latest)](https://django-yp-admin.readthedocs.io/en/latest/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
 **An htmx-powered theme + helpers for `django.contrib.admin`. Two dependencies. Zero jQuery.**
 
 `django-yp-admin` is an **htmx-powered admin theme plus a small set of helpers** for `django.contrib.admin`. It ships template overrides (Picnic CSS, native HTML5 widgets, htmx) and a handful of reusable abstract models and admin mixins (OrderedModel, SingletonModel, lightweight history, htmx widgets). It is **not** a full drop-in replacement for `django.contrib.admin` — it layers on top of the stock `AdminSite`.
