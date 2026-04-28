@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.1.0 — 2026-04-28
+
+First stable release. Same surface as `0.1.0a3` plus visual-polish CSS fixes, an `OrderedModel` correctness fix for non-FK grouping fields, multi-language documentation, and screenshots embedded in docs.
+
+### Bug fixes
+
+- **Dashboard app-list link contrast.** Picnic CSS sets `tbody th[scope="row"]` to a solid accent background; the inner `<a>` inherited the accent color too, so model labels (Authors, Blog posts, …) rendered ~invisible blue-on-blue. Fix: explicit white link color on those cells, and reset the accent background on changelist `<th class="field-…">` cells which lack `scope="row"`.
+- **Changelist filter sidebar layout.** Picnic styles `<nav>` as a fixed top navbar (`position: fixed; top: 0; z-index: 10000`). `#changelist-filter` is a `<nav>` for semantics, but rendered as a full-width banner overlapping the page content. Fix: reset position/z-index/width on `#changelist-filter`.
+- **Changelist 3-children grid flow.** `#changelist` has 3 grid items (`#toolbar`, `#changelist-form`, `#changelist-filter`), so `grid-template-columns: 1fr 14rem` placed the form into the narrow filter column. Fix: `#toolbar` and date hierarchy now `grid-column: 1 / -1`, leaving form/filter on the next row.
+- **Related-popup `<dialog>` always visible.** `dialog.yp-related-popup` had unconditional `display: grid`, overriding the UA default `display: none` for closed `<dialog>`s. Result: an empty modal sat on top of every change-form page. Fix: scope `display: grid` to `[open]`.
+- **`OrderedModel._wrt_filter_kwargs` assumed every wrt field was a FK.** A wrt tuple mixing FK + CharField (e.g. `order_with_respect_to = ("board", "status")`) raised `FieldError: Cannot resolve keyword 'status_id'` on save. Fix: introspect each field via `_meta.get_field()` and only append `_id` for `many_to_one` relations; bare field name otherwise.
+
+### Documentation
+
+- **i18n.** Full Spanish (`docs/es/`) and Portuguese-Brazilian (`docs/pt/`) translations of all reference pages. `mkdocs.yml` wires `mkdocs-static-i18n` (`en` default, `es`, `pt`).
+- **Screenshots.** `docs/screenshots/` holds 13 PNGs captured from the demo project (Playwright, 1440×900). Embedded in `index`, `filters`, `singleton`, `ordered` (en/es/pt).
+- Removed stale "~19 tests" reference; updated to 104.
+- Replaced "Drop-in replacement for django.contrib.admin" wording in `mkdocs.yml` with the accurate "htmx-powered theme + helpers for django.contrib.admin".
+
+### Demo
+
+- Added four new demo apps to [django-yp-admin-demo](https://github.com/ypsoftware/django-yp-admin-demo): `cookbook` (Recipe + ordered Ingredients/Steps + difficulty Dropdown + cook-time NumericRange), `music` (Album + sortable Track + DateRange on release_date), `survey` (3-level NestedInline Survey → Question → Choice with versioning), `kanban` (Task ordered within `(board, status)` groups with the full filter family).
+
 ## 0.1.0a3 — 2026-04-28
 
 Support matrix refresh + four edge-case bug fixes.

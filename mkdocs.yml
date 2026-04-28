@@ -1,5 +1,5 @@
 site_name: django-yp-admin
-site_description: Drop-in replacement for django.contrib.admin powered by htmx and Picnic CSS.
+site_description: htmx-powered theme + helpers for django.contrib.admin.
 site_url: https://django-yp-admin.readthedocs.io/
 repo_url: https://github.com/ypsoftware/django-yp-admin
 repo_name: ypsoftware/django-yp-admin
@@ -53,3 +53,16 @@ markdown_extensions:
 
 plugins:
   - search
+  - i18n:
+      docs_structure: folder
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
+        - locale: es
+          name: Español
+          build: true
+        - locale: pt
+          name: Português
+          build: true

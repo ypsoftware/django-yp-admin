@@ -1,7 +1,7 @@
 # Compatibility
 
 !!! warning "v0.1, pre-alpha — read this first"
-    `django-yp-admin` is an **htmx-powered theme + helpers** for `django.contrib.admin`, **not** a full drop-in replacement. The current test suite (~19 tests) exercises the theme, helpers, and a thin slice of the optional integrations. The compatibility claims below describe **design intent**, not regression-tested guarantees.
+    `django-yp-admin` is an **htmx-powered theme + helpers** for `django.contrib.admin`, **not** a full drop-in replacement. The current test suite (104 tests) exercises the theme, helpers, and a thin slice of the optional integrations. The compatibility claims below describe **design intent**, not regression-tested guarantees.
 
 This page documents what is preserved by design, what is known to break, and what is not yet supported.
 

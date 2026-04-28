@@ -106,14 +106,25 @@ class OrderedModel(models.Model):
     def _wrt_filter_kwargs(self) -> dict:
         """Build a filter kwargs dict for sibling lookups.
 
-        For each declared wrt field, accept either the field name (FK instance)
-        or its `_id` attribute. Always filter by the `_id` form so we don't
-        force a related lookup.
+        For FK fields, prefer the `_id` attname so we don't force a related
+        lookup. For non-FK fields (e.g. a CharField status used as part of
+        the grouping key), filter by the bare field name.
         """
         kwargs = {}
+        meta = type(self)._meta
         for name in self._wrt_fields():
-            attname = name if name.endswith("_id") else f"{name}_id"
-            kwargs[attname] = getattr(self, attname, None)
+            # Caller may have already passed the `_id` form.
+            base_name = name[:-3] if name.endswith("_id") else name
+            try:
+                field = meta.get_field(base_name)
+            except Exception:
+                field = None
+            is_relation = bool(getattr(field, "is_relation", False) and getattr(field, "many_to_one", False))
+            if is_relation:
+                attname = f"{base_name}_id"
+                kwargs[attname] = getattr(self, attname, None)
+            else:
+                kwargs[base_name] = getattr(self, base_name, None)
         return kwargs
 
     def _sibling_qs(self):
@@ -130,16 +141,24 @@ class OrderedModel(models.Model):
         fields = self._wrt_fields()
         if not fields:
             return False
+        meta = type(self)._meta
+
+        def _attname(name: str) -> str:
+            base = name[:-3] if name.endswith("_id") else name
+            try:
+                field = meta.get_field(base)
+            except Exception:
+                return base
+            if getattr(field, "is_relation", False) and getattr(field, "many_to_one", False):
+                return f"{base}_id"
+            return base
+
+        attnames = [_attname(f) for f in fields]
         try:
-            db_obj = (
-                type(self)
-                ._default_manager.only(*(f if f.endswith("_id") else f"{f}_id" for f in fields))
-                .get(pk=self.pk)
-            )
+            db_obj = type(self)._default_manager.only(*attnames).get(pk=self.pk)
         except type(self).DoesNotExist:
             return False
-        for name in fields:
-            attname = name if name.endswith("_id") else f"{name}_id"
+        for attname in attnames:
             if getattr(self, attname, None) != getattr(db_obj, attname, None):
                 return True
         return False

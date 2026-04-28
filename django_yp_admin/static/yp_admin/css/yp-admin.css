@@ -283,6 +283,13 @@ ul.errorlist {
     &.filtered { grid-template-columns: minmax(0, 1fr) 14rem; }
 
     & .results { overflow-x: auto; }
+
+    /* Search toolbar and date hierarchy span the full width above the
+       form/filter row, so the implicit grid flow doesn't drop the form
+       into the narrow filter column. */
+    & > #toolbar,
+    & > .xfull,
+    & > .date-hierarchy { grid-column: 1 / -1; }
 }
 
 /* =============================================================
@@ -314,6 +321,25 @@ table {
         padding: 0.4rem 0.5rem;
         border-block-end: 1px solid var(--yp-border);
         vertical-align: middle;
+        /* Reset Picnic's accent bg on tbody th — we only want it on the
+           dashboard app-list (th[scope="row"]), not on changelist
+           first-column <th class="field-…"> cells. */
+        background: transparent;
+        color: inherit;
+    }
+
+    /* Dashboard app-list re-applies the accent treatment on row headers;
+       force inner links to contrast (white) so they're not blue-on-blue. */
+    & tbody th[scope="row"] {
+        background: var(--yp-accent);
+        color: var(--yp-accent-fg);
+    }
+    & tbody th[scope="row"] a {
+        color: var(--yp-accent-fg);
+    }
+    & tbody th[scope="row"] a:hover {
+        color: var(--yp-accent-fg);
+        text-decoration: underline;
     }
 
     & tbody tr:nth-child(even) { background: var(--yp-row-alt); }
@@ -340,6 +366,14 @@ table {
    Filters sidebar
    ============================================================= */
 #changelist-filter {
+    /* Reset Picnic's <nav> defaults (position:fixed; top:0; full-width navbar)
+       — we use the element semantically, not as a top navigation bar. */
+    position: static;
+    top: auto;
+    z-index: auto;
+    width: auto;
+    box-shadow: none;
+
     background: var(--yp-row-alt);
     border: 1px solid var(--yp-border);
     border-radius: var(--yp-radius);
@@ -496,8 +530,14 @@ dialog {
 dialog.yp-related-popup {
     width: min(960px, 90vw);
     height: min(720px, 90vh);
-    display: grid;
     grid-template-rows: auto 1fr;
+}
+/* Only switch to grid when the dialog is actually open. The unscoped
+   `display: grid` would otherwise override the UA default of
+   `display: none` on closed <dialog>, leaving an empty modal box
+   sitting on every change-form page. */
+dialog.yp-related-popup[open] {
+    display: grid;
 
     & [data-yp-close-dialog] {
         justify-self: end;

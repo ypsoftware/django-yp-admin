@@ -2,6 +2,8 @@
 
 Replaces `django-ordered-model`. Atomic `move_to(n)` and HTML5 Drag & Drop inlines, ~120 LOC.
 
+![Ordered FAQ](screenshots/ordered-faq.png)
+
 ## Model
 
 ```python

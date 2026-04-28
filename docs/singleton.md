@@ -2,6 +2,8 @@
 
 Replaces `django-solo`. ~120 LOC, no extra dep.
 
+![Singleton change form](screenshots/singleton-config.png)
+
 ## Model
 
 `django_yp_admin.models.SingletonModel` is an abstract base that pins `pk=1` on save and turns `delete()` into a no-op.

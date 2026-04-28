@@ -1,12 +1,12 @@
-# Filters
+# Filtros
 
-`django_yp_admin.filters` ships drop-in replacements for the popular `django-filter` and `django-admin-rangefilter` patterns. All filters are plain Django `SimpleListFilter` / `FieldListFilter` subclasses — they work in any `ModelAdmin.list_filter`.
+`django_yp_admin.filters` ofrece reemplazos drop-in para los patrones populares de `django-filter` y `django-admin-rangefilter`. Todos los filtros son simples subclases de `SimpleListFilter` / `FieldListFilter` de Django — funcionan en cualquier `ModelAdmin.list_filter`.
 
-![Filters sidebar](screenshots/changelist-blog.png)
+![Barra lateral de filtros](../screenshots/changelist-blog.png)
 
 ## DropdownFilter
 
-A `<select>` instead of a vertical list of links:
+Un `<select>` en lugar de una lista vertical de enlaces:
 
 ```python
 from django_yp_admin.filters import DropdownFilter, ChoicesDropdownFilter
@@ -24,11 +24,11 @@ class ArticleAdmin(ModelAdmin):
     list_filter = (StatusFilter, ("category", ChoicesDropdownFilter))
 ```
 
-Variants: `RelatedDropdownFilter` (FK/M2M), `FieldDropdownFilter` (`AllValues`), `ChoicesDropdownFilter` (`choices=`).
+Variantes: `RelatedDropdownFilter` (FK/M2M), `FieldDropdownFilter` (`AllValues`), `ChoicesDropdownFilter` (`choices=`).
 
 ## MultiSelectFilter
 
-Multi-value selection via `__in`. URL: `?tags=a&tags=b`.
+Selección de múltiples valores vía `__in`. URL: `?tags=a&tags=b`.
 
 ```python
 from django_yp_admin.filters import MultiSelectFilter
@@ -44,7 +44,7 @@ class TagFilter(MultiSelectFilter):
 
 ## DateRangeFilter / DateTimeRangeFilter / NumericRangeFilter
 
-Paired `__gte` / `__lte` bounds, native `<input type="date">`, `<input type="datetime-local">`, `<input type="number">`. Invalid input is silently ignored (queryset returned unfiltered for that bound).
+Límites pareados `__gte` / `__lte`, con `<input type="date">`, `<input type="datetime-local">`, `<input type="number">` nativos. La entrada inválida se ignora silenciosamente (el queryset se devuelve sin filtrar para ese límite).
 
 ```python
 from django_yp_admin.filters import DateRangeFilter, NumericRangeFilter
