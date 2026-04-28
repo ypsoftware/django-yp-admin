@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import ClassVar
 
 from django.db import models, transaction
-from django.db.models import F, Max, ProtectedError, QuerySet
+from django.db.models import Max, ProtectedError, QuerySet
 
 
 class SingletonQuerySet(QuerySet):
@@ -131,9 +131,11 @@ class OrderedModel(models.Model):
         if not fields:
             return False
         try:
-            db_obj = type(self)._default_manager.only(
-                *(f if f.endswith("_id") else f"{f}_id" for f in fields)
-            ).get(pk=self.pk)
+            db_obj = (
+                type(self)
+                ._default_manager.only(*(f if f.endswith("_id") else f"{f}_id" for f in fields))
+                .get(pk=self.pk)
+            )
         except type(self).DoesNotExist:
             return False
         for name in fields:
@@ -161,19 +163,30 @@ class OrderedModel(models.Model):
 
         Shifts siblings between the old and new positions by ±1 using
         an F-expression update, then writes the new order on self.
+
+        ``new_order`` is clamped to ``[0, max(order_in_group)]`` so callers
+        can't open gaps in the sequence by passing an out-of-range index.
         """
         new_order = int(new_order)
         with transaction.atomic():
             # Lock siblings (and self) for the duration of the transaction.
-            locked = list(
-                self._sibling_qs().select_for_update().values_list("pk", "order")
-            )
+            locked = list(self._sibling_qs().select_for_update().values_list("pk", "order"))
             current = dict(locked).get(self.pk)
             if current is None:
                 # Not yet persisted in this group; fall back to plain save.
-                self.order = new_order
+                # Clamp to non-negative to avoid IntegrityError on the
+                # PositiveIntegerField CHECK constraint.
+                self.order = max(0, new_order)
                 self.save(update_fields=["order"])
                 return
+            # Clamp into [0, max_existing_order]. The current row already
+            # occupies one slot, so max_existing_order is the highest valid
+            # destination index.
+            max_order = max((o for _, o in locked), default=0)
+            if new_order < 0:
+                new_order = 0
+            elif new_order > max_order:
+                new_order = max_order
             if new_order == current:
                 return
 
@@ -192,9 +205,7 @@ class OrderedModel(models.Model):
                 # Moving down: shift items in (current, new_order] DOWN by 1.
                 # Walk in ascending order so each row's target is just-vacated.
                 rows = list(
-                    qs.filter(order__gt=current, order__lte=new_order)
-                    .order_by("order")
-                    .values_list("pk", "order")
+                    qs.filter(order__gt=current, order__lte=new_order).order_by("order").values_list("pk", "order")
                 )
                 for pk, ordv in rows:
                     mgr.filter(pk=pk).update(order=ordv - 1)
@@ -202,9 +213,7 @@ class OrderedModel(models.Model):
                 # Moving up: shift items in [new_order, current) UP by 1.
                 # Walk in descending order so each row's target is just-vacated.
                 rows = list(
-                    qs.filter(order__gte=new_order, order__lt=current)
-                    .order_by("-order")
-                    .values_list("pk", "order")
+                    qs.filter(order__gte=new_order, order__lt=current).order_by("-order").values_list("pk", "order")
                 )
                 for pk, ordv in rows:
                     mgr.filter(pk=pk).update(order=ordv + 1)

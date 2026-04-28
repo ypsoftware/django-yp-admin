@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.1.0a3 — 2026-04-28
+
+Support matrix refresh + four edge-case bug fixes.
+
+### Bug fixes
+
+- **`DateRangeFilter` / `DateTimeRangeFilter` emitted naive-datetime warnings under `USE_TZ=True`.** Range bounds parsed as `date` / naive `datetime` were passed straight to a queryset on a `DateTimeField`, triggering `RuntimeWarning: ... naive datetime ... while time zone support is active` (and silently wrong-tz comparisons in some setups). Fix: `_RangeFilterBase` now coerces `date` / naive `datetime` values to aware datetimes in the active timezone before filtering.
+- **`HtmxAutocomplete.get_url()` dropped `to_field` for FKs declaring a non-pk target.** With `ForeignKey(..., to_field='slug')`, the autocomplete URL omitted `to_field`, so `AutocompleteJsonView` searched the wrong column. Fix: pass `to_field` when the FK target differs from the related model's pk.
+- **`OrderedModel.move_to(N)` did not clamp out-of-range positions.** Passing `N > max_order` wrote `order=N` and left a gap; passing `N < 0` raised `IntegrityError` from the `PositiveIntegerField` CHECK constraint mid-transaction. Fix: clamp `new_order` to `[0, max_existing_order]` before the sibling shift.
+
+### Packaging / CI
+
+- **Drop Django 5.0 and 5.1** from the test matrix and trove classifiers. Both are EOL (5.0 EOL 2025-04, 5.1 EOL 2025-12) and only inflate CI without adding coverage.
+- **Add Django 5.2 LTS** (supported until 2028-04-30) and **Django 6.0** (supported until 2027-04-30) to the matrix and classifiers.
+- **Drop Python 3.10** (EOL 2025-10). Bumping `requires-python` was unnecessary (already `>=3.11`).
+- **Add Python 3.14** to the matrix.
+- CI matrix exclusions follow Django's published Python compat: 4.2 keeps 3.11/3.12; 5.2 covers 3.11/3.12/3.13; 6.0 covers 3.12/3.13/3.14.
+
+### Tests
+
+- New `tests/test_edge_cases.py` (12 tests): tz-aware DateRangeFilter, NumericRangeFilter with negatives/zero, OrderedModel re-parenting, revert content_type mismatch, HTML escape in DropdownFilter, HtmxAutocomplete with custom `to_field`, sortable inline with empty queryset, change_form with all readonly fields, MultiSelectFilter with 100 options, `move_to()` clamping (>max and negative), threadsafe `SingletonModel.get_solo()`.
+- Suite: 92 → **104 tests**.
+
 ## 0.1.0a2 — 2026-04-28
 
 Bug fixes from real-world demo project run on Django 4.2 / 5.0 / 5.1.

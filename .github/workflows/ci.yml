@@ -12,16 +12,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
-        django-version: ["4.2", "5.0", "5.1"]
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        django-version: ["4.2", "5.2", "6.0"]
         exclude:
-          # Django 4.2 LTS supports Python 3.10-3.12 (not 3.13)
+          # Django 4.2 LTS supports Python 3.10-3.12 (not 3.13, not 3.14)
           - python-version: "3.13"
             django-version: "4.2"
-          # Django 5.0 supports Python 3.10-3.12 (not 3.13)
-          - python-version: "3.13"
-            django-version: "5.0"
-          # Django 5.1 supports Python 3.10-3.13 (all matrix combos OK)
+          - python-version: "3.14"
+            django-version: "4.2"
+          # Django 5.2 LTS supports Python 3.10-3.13 (not 3.14, conservatively)
+          - python-version: "3.14"
+            django-version: "5.2"
+          # Django 6.0 supports Python 3.12+ (not 3.11)
+          - python-version: "3.11"
+            django-version: "6.0"
     steps:
       - uses: actions/checkout@v4
 

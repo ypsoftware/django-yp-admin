@@ -3,7 +3,6 @@
 from django.contrib import admin
 from django.contrib.admin import FieldListFilter
 from django.core.exceptions import ImproperlyConfigured
-from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
@@ -19,15 +18,11 @@ class DropdownFilter(admin.SimpleListFilter):
         # our class default of "" would slip through. Validate explicitly.
         if not self.parameter_name:
             raise ImproperlyConfigured(
-                "The list filter '%s' does not specify a 'parameter_name'."
-                % self.__class__.__name__
+                "The list filter '%s' does not specify a 'parameter_name'." % self.__class__.__name__
             )
         super().__init__(request, params, model, model_admin)
         if not self.title:
-            raise ImproperlyConfigured(
-                "The list filter '%s' does not specify a 'title'."
-                % self.__class__.__name__
-            )
+            raise ImproperlyConfigured("The list filter '%s' does not specify a 'title'." % self.__class__.__name__)
 
     def lookups(self, request, model_admin):
         return ()
@@ -57,18 +52,12 @@ class FieldDropdownFilter(admin.AllValuesFieldListFilter):
 
     def __init__(self, field, request, params, model, model_admin, field_path):
         super().__init__(field, request, params, model, model_admin, field_path)
-        if not getattr(self, "parameter_name", None) and not getattr(
-            self, "lookup_kwarg", None
-        ):
+        if not getattr(self, "parameter_name", None) and not getattr(self, "lookup_kwarg", None):
             raise ImproperlyConfigured(
-                "The list filter '%s' does not specify a 'parameter_name'."
-                % self.__class__.__name__
+                "The list filter '%s' does not specify a 'parameter_name'." % self.__class__.__name__
             )
         if not self.title:
-            raise ImproperlyConfigured(
-                "The list filter '%s' does not specify a 'title'."
-                % self.__class__.__name__
-            )
+            raise ImproperlyConfigured("The list filter '%s' does not specify a 'title'." % self.__class__.__name__)
 
 
 class ChoicesDropdownFilter(admin.ChoicesFieldListFilter):
@@ -150,14 +139,41 @@ class _RangeFilterBase(FieldListFilter):
         except (ValueError, TypeError):
             return None
 
+    def _coerce_for_field(self, value):
+        """Coerce a parsed value so it matches the underlying field type.
+
+        For DateTimeFields under ``USE_TZ=True``, naive datetime / date inputs
+        get promoted to timezone-aware datetimes in the active timezone so the
+        ORM does not emit ``RuntimeWarning: ... naive datetime ... while time
+        zone support is active``.
+        """
+        from datetime import date, datetime
+
+        from django.conf import settings
+        from django.db import models as dj_models
+        from django.utils import timezone
+
+        if not isinstance(self.field, dj_models.DateTimeField):
+            return value
+        if not getattr(settings, "USE_TZ", False):
+            return value
+        if isinstance(value, datetime):
+            if timezone.is_naive(value):
+                return timezone.make_aware(value, timezone.get_current_timezone())
+            return value
+        if isinstance(value, date):
+            dt = datetime.combine(value, datetime.min.time())
+            return timezone.make_aware(dt, timezone.get_current_timezone())
+        return value
+
     def queryset(self, request, queryset):
         filters = {}
         gte = self._clean(request.GET.get(self.lookup_kwarg_gte))
         lte = self._clean(request.GET.get(self.lookup_kwarg_lte))
         if gte is not None:
-            filters[self.lookup_kwarg_gte] = gte
+            filters[self.lookup_kwarg_gte] = self._coerce_for_field(gte)
         if lte is not None:
-            filters[self.lookup_kwarg_lte] = lte
+            filters[self.lookup_kwarg_lte] = self._coerce_for_field(lte)
         if not filters:
             return queryset
         return queryset.filter(**filters)
@@ -181,17 +197,20 @@ class _RangeFilterBase(FieldListFilter):
 
 def _parse_date(value):
     from datetime import date
+
     return date.fromisoformat(value)
 
 
 def _parse_datetime(value):
     from datetime import datetime
+
     # HTML datetime-local: "YYYY-MM-DDTHH:MM" (optionally with seconds).
     return datetime.fromisoformat(value)
 
 
 def _parse_number(value):
     from decimal import Decimal, InvalidOperation
+
     try:
         return Decimal(value)
     except InvalidOperation as exc:
