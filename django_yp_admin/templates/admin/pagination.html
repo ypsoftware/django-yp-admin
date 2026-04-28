@@ -1,0 +1,26 @@
+{% load i18n admin_list %}
+<nav class="paginator" aria-label="{% translate 'Pagination' %}">
+    {% if pagination_required %}
+        <ul class="yp-pagination">
+        {% for i in page_range %}
+            <li>
+                {% if i == cl.paginator.ELLIPSIS %}
+                    <span>{{ i }}</span>
+                {% elif i == cl.page_num %}
+                    <span class="this-page" aria-current="page">{{ i }}</span>
+                {% else %}
+                    <a href="?{{ cl.get_query_string|slice:'1:' }}{% if cl.get_query_string %}&{% endif %}{{ cl.page_var }}={{ i }}"
+                       hx-get="?{{ cl.get_query_string|slice:'1:' }}{% if cl.get_query_string %}&{% endif %}{{ cl.page_var }}={{ i }}"
+                       hx-target="#changelist-form"
+                       hx-push-url="true"
+                       {% if i == cl.paginator.num_pages %}class="end"{% endif %}>{{ i }}</a>
+                {% endif %}
+            </li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+    <span class="result-count">{% blocktranslate count counter=cl.result_count %}{{ counter }} result{% plural %}{{ counter }} results{% endblocktranslate %}
+    {% if show_all_url %} (<a href="{{ show_all_url }}" class="showall">{% translate 'Show all' %}</a>){% endif %}
+    {% if cl.formset and cl.result_count %} | <button type="submit" name="_save" class="default">{% translate 'Save' %}</button>{% endif %}
+    </span>
+</nav>

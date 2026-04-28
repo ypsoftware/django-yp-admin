@@ -1,0 +1,87 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "django-yp-admin"
+version = "0.1.0a1"
+description = "htmx-powered theme + helpers for django.contrib.admin. Picnic CSS, native HTML5 widgets, two mandatory dependencies."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Yp Software", email = "info@ypsoftware.com.py" },
+]
+keywords = ["django", "admin", "htmx", "picnic", "no-jquery", "modern-browsers"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Web Environment",
+    "Framework :: Django",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.0",
+    "Framework :: Django :: 5.1",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "Django>=4.2",
+    "django-htmx>=1.17",
+]
+
+[project.optional-dependencies]
+history = ["django-simple-history>=3.5"]
+import-export = ["django-import-export>=4.0"]
+full = [
+    "django-simple-history>=3.5",
+    "django-import-export>=4.0",
+]
+docs = [
+    "mkdocs>=1.5",
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.24",
+]
+dev = [
+    "pytest>=8",
+    "pytest-django>=4.8",
+    "ruff>=0.5",
+    "build",
+    "twine",
+]
+
+[project.urls]
+Homepage = "https://github.com/ypsoftware/django-yp-admin"
+Documentation = "https://django-yp-admin.readthedocs.io/"
+Issues = "https://github.com/ypsoftware/django-yp-admin/issues"
+Source = "https://github.com/ypsoftware/django-yp-admin"
+
+[tool.hatch.build.targets.wheel]
+packages = ["django_yp_admin"]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "/frontend",
+    "/internal-docs",
+    "/docs",
+    "/tests",
+    "/site",
+    "/.github",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "DJ"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "tests.settings"
+python_files = ["test_*.py"]

@@ -1,0 +1,26 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('YP Admin') }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">{{ site_header|default:_('YP Administration') }}</a>
+</h1>
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'yp_admin/css/yp-admin.css' %}">
+<script src="{% static 'yp_admin/js/yp-admin.js' %}" defer></script>
+<script>
+(function () {
+    document.body.addEventListener("htmx:configRequest", function (e) {
+        var m = document.cookie.match(/csrftoken=([^;]+)/);
+        if (m) { e.detail.headers["X-CSRFToken"] = m[1]; }
+    });
+})();
+</script>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

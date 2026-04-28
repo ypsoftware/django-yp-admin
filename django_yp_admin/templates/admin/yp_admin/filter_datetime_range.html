@@ -1,0 +1,29 @@
+{% load i18n %}
+<div class="module yp-filter yp-filter-range yp-filter-datetime-range">
+  <h3>{% blocktranslate with filter_title=title %}By {{ filter_title }}{% endblocktranslate %}</h3>
+  {% for choice in choices %}
+    <label>
+      {% translate "From" %}
+      <input type="{{ choice.input_type }}"
+             name="{{ choice.param_gte }}"
+             value="{{ choice.value_gte }}"
+             hx-get=""
+             hx-trigger="change delay:300ms"
+             hx-target="#changelist-form"
+             hx-push-url="true">
+    </label>
+    <label>
+      {% translate "To" %}
+      <input type="{{ choice.input_type }}"
+             name="{{ choice.param_lte }}"
+             value="{{ choice.value_lte }}"
+             hx-get=""
+             hx-trigger="change delay:300ms"
+             hx-target="#changelist-form"
+             hx-push-url="true">
+    </label>
+    {% for k, v in choice.preserved.items %}
+      <input type="hidden" name="{{ k }}" value="{{ v }}">
+    {% endfor %}
+  {% endfor %}
+</div>

@@ -1,0 +1,12 @@
+include README.md
+include LICENSE
+include CONTRIBUTING.md
+recursive-include django_yp_admin/templates *
+recursive-include django_yp_admin/static *
+recursive-include django_yp_admin/locale *
+prune internal-docs
+prune docs
+prune tests
+prune frontend
+prune site
+prune .github

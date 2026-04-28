@@ -1,0 +1,19 @@
+{% load i18n %}
+<div class="module yp-filter yp-filter-multiselect">
+  <h3>{% blocktranslate with filter_title=title %}By {{ filter_title }}{% endblocktranslate %}</h3>
+  <select name="{{ spec.parameter_name }}"
+          multiple
+          hx-get=""
+          hx-trigger="change delay:300ms"
+          hx-target="#changelist-form"
+          hx-push-url="true"
+          hx-include="[name='{{ spec.parameter_name }}']">
+    {% for choice in choices %}
+      {% if choice.value %}
+        <option value="{{ choice.value }}" {% if choice.selected %}selected{% endif %}>
+          {{ choice.display }}
+        </option>
+      {% endif %}
+    {% endfor %}
+  </select>
+</div>

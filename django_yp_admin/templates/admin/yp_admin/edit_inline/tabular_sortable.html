@@ -1,0 +1,22 @@
+{% extends "admin/edit_inline/tabular.html" %}
+{% load i18n admin_urls %}
+
+{# Sortable tabular inline. Wraps the standard tabular template, exposing #}
+{# data-yp-sortable hooks for yp-admin.js. The frontend injects drag      #}
+{# handles into each row at runtime and serializes the new order to the   #}
+{# yp_reorder URL using the field named in data-yp-sortable-field.        #}
+{# A hidden input per row (sortable_field) keeps a JS-free POST working.  #}
+
+{% block inline %}
+{% url 'admin:yp_reorder' inline_admin_formset.opts.model._meta.app_label inline_admin_formset.opts.model._meta.model_name as yp_reorder_url %}
+<div class="js-inline-admin-formset inline-group yp-sortable-group"
+     id="{{ inline_admin_formset.formset.prefix }}-group"
+     data-inline-type="tabular"
+     data-inline-formset="{{ inline_admin_formset.inline_formset_data }}"
+     data-yp-sortable="true"
+     data-yp-sortable-field="{{ inline_admin_formset.opts.sortable_field|default:'order' }}"
+     data-yp-sortable-prefix="{{ inline_admin_formset.formset.prefix }}"
+     {% if yp_reorder_url %}data-yp-reorder-url="{{ yp_reorder_url }}"{% endif %}>
+  {{ block.super }}
+</div>
+{% endblock %}

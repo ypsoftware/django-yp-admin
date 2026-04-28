@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  test:
+    name: py${{ matrix.python-version }} / Django ${{ matrix.django-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+        django-version: ["4.2", "5.0", "5.1"]
+        exclude:
+          # Django 4.2 LTS supports Python 3.10-3.12 (not 3.13)
+          - python-version: "3.13"
+            django-version: "4.2"
+          # Django 5.0 supports Python 3.10-3.12 (not 3.13)
+          - python-version: "3.13"
+            django-version: "5.0"
+          # Django 5.1 supports Python 3.10-3.13 (all matrix combos OK)
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install package and dev extras
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Install pinned Django ${{ matrix.django-version }}
+        run: pip install "Django~=${{ matrix.django-version }}.0"
+
+      - name: Run pytest
+        run: pytest -q
+
+  frontend:
+    name: Frontend bundle drift check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: bun install --frozen-lockfile
+
+      - name: Build frontend bundle
+        working-directory: frontend
+        run: bun run build
+
+      - name: Verify bundle is in sync with sources
+        run: git diff --exit-code django_yp_admin/static/yp_admin/js/

@@ -1,0 +1,41 @@
+{% extends "admin/yp_admin/change_form.html" %}
+{% load i18n %}
+
+{% block content %}
+<h1>{% blocktrans with name=original %}History for {{ name }}{% endblocktrans %}</h1>
+
+{% if versions %}
+<table class="results">
+    <thead>
+        <tr>
+            <th>{% trans "Date" %}</th>
+            <th>{% trans "User" %}</th>
+            <th>{% trans "Comment" %}</th>
+            <th>{% trans "Action" %}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for version in versions %}
+        <tr>
+            <td>{{ version.revision.created_at }}</td>
+            <td>{{ version.revision.user|default:"-" }}</td>
+            <td>{{ version.revision.comment }}</td>
+            <td>
+                <form method="post"
+                      action="{% url 'yp_admin:yp_revert' app_label=opts.app_label model_name=opts.model_name object_id=object_id version_id=version.pk %}"
+                      style="display:inline">
+                    {% csrf_token %}
+                    <button type="submit"
+                            data-yp-confirm="{% trans "Revert to this version?" %}">
+                        {% trans "Revert" %}
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>{% trans "No versions recorded for this object." %}</p>
+{% endif %}
+{% endblock %}

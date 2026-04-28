@@ -1,0 +1,55 @@
+site_name: django-yp-admin
+site_description: Drop-in replacement for django.contrib.admin powered by htmx and Picnic CSS.
+site_url: https://django-yp-admin.readthedocs.io/
+repo_url: https://github.com/ypsoftware/django-yp-admin
+repo_name: ypsoftware/django-yp-admin
+copyright: Copyright &copy; 2026 Yp Software
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - content.code.copy
+    - search.suggest
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - Getting started:
+    - Installation: installation.md
+    - Quickstart: quickstart.md
+  - Reference:
+    - ModelAdmin: modeladmin.md
+    - Filters: filters.md
+    - Singleton models: singleton.md
+    - Ordered models: ordered.md
+    - Versioning: versioning.md
+  - Integrations:
+    - Optional extras: optional-extras.md
+  - Project:
+    - Browser support: browser-support.md
+    - Compatibility: compatibility.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search

@@ -1,0 +1,14 @@
+{% extends "admin/yp_admin/change_form.html" %}
+{% load i18n %}
+
+{% block object-tools-items %}
+    {% if original %}
+    <li>
+        <a href="{% url 'admin:'|add:opts.app_label|add:'_'|add:opts.model_name|add:'_yp_history' original.pk %}"
+           class="historylink">
+            {% trans "History" %}
+        </a>
+    </li>
+    {% endif %}
+    {{ block.super }}
+{% endblock %}

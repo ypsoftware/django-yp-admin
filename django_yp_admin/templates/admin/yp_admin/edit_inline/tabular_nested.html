@@ -1,0 +1,33 @@
+{% extends "admin/edit_inline/tabular.html" %}
+{% load i18n admin_urls %}
+
+{# Nested inline. If htmx_lazy is set, the body is replaced with an       #}
+{# hx-get placeholder that fetches the inline formset on demand. Without  #}
+{# JS the <noscript> fallback links to the change form, so the form still #}
+{# submits normally end-to-end.                                           #}
+
+{% block inline %}
+{% if inline_admin_formset.opts.htmx_lazy %}
+<div class="js-inline-admin-formset inline-group yp-nested-group"
+     id="{{ inline_admin_formset.formset.prefix }}-group"
+     data-inline-type="tabular"
+     data-inline-formset="{{ inline_admin_formset.inline_formset_data }}"
+     data-yp-nested="true">
+  <div class="yp-nested-placeholder"
+       hx-get="?yp_inline={{ inline_admin_formset.formset.prefix }}"
+       hx-trigger="revealed once"
+       hx-swap="outerHTML">
+    <noscript>{{ block.super }}</noscript>
+    <p class="yp-nested-loading">{% translate "Loading…" %}</p>
+  </div>
+</div>
+{% else %}
+<div class="js-inline-admin-formset inline-group yp-nested-group"
+     id="{{ inline_admin_formset.formset.prefix }}-group"
+     data-inline-type="tabular"
+     data-inline-formset="{{ inline_admin_formset.inline_formset_data }}"
+     data-yp-nested="true">
+  {{ block.super }}
+</div>
+{% endif %}
+{% endblock %}
