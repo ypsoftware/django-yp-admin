@@ -865,11 +865,14 @@ nav.paginator {
     }
 }
 
-/* Card-style table for tiny screens — each row becomes a card.
-   Opt-in: add `yp-responsive-cards` class to the results table. */
+/* Card-style table for small screens — each row becomes a card with
+   label floating left and value floating right. Automatic on
+   #result_list; no opt-in class required. */
 @media (max-width: 480px) {
-    table.yp-responsive-cards {
+    #result_list {
         display: block;
+        border-collapse: separate;
+        border-spacing: 0 0.5rem;
 
         & thead { display: none; }
 
@@ -877,37 +880,61 @@ nav.paginator {
             display: block;
         }
 
-        & tr {
-            padding: 0.75rem;
-            border-block-end: 1px solid var(--yp-border);
-            position: relative;
+        & tbody {
+            display: block;
+        }
 
-            &:nth-child(even) { background: var(--yp-row-alt); }
+        & tr {
+            padding: 0.6rem 0.75rem;
+            border: 1px solid var(--yp-border);
+            border-radius: var(--yp-radius);
+            margin-block-end: 0.5rem;
+            background: var(--yp-bg);
+            box-shadow: var(--yp-shadow);
+
+            &:nth-child(even) { background: var(--yp-bg); }
             &:hover { background: var(--yp-row-hover); }
         }
 
         & td, & th {
-            padding: 0.3rem 0;
+            padding: 0.35rem 0;
             border: 0;
             text-align: start;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 0.5rem;
 
             &:not(:last-child) {
                 border-block-end: 1px dashed var(--yp-border);
             }
         }
 
-        /* Show field name before value using data-label attribute.
-           Template must render: <td data-label="Field name">value</td> */
+        /* Floating label on the left, value on the right */
         & td[data-label]::before,
         & th[data-label]::before {
             content: attr(data-label);
-            display: block;
             font-weight: 600;
             font-size: 0.75rem;
             color: var(--yp-muted);
             text-transform: uppercase;
             letter-spacing: 0.04em;
-            margin-block-end: 0.15rem;
+            flex-shrink: 0;
+        }
+
+        /* Handle cells that contain links (primary field) */
+        & td a, & th a {
+            word-break: break-word;
+            text-align: end;
+        }
+
+        /* Action checkbox row: center it */
+        & td.action-checkbox {
+            display: flex;
+            justify-content: center;
+            padding: 0.5rem 0;
+
+            &::before { display: none; }
         }
     }
 }

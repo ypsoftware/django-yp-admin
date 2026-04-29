@@ -253,3 +253,41 @@ document.body.addEventListener("htmx:afterSwap", (evt: Event) => {
     scrollToFirstError(target);
   }
 });
+
+/**
+ * Inject `data-label` attributes on changelist <td> cells so CSS can
+ * display floating labels in card view on small screens.
+ *
+ * Reads header text from each <th> in the <thead> and copies it as
+ * `data-label` on the corresponding <td> in every <tbody> row.
+ * Idempotent — skips cells that already have the attribute.
+ */
+function bindCardLabels(root: ParentNode = document): void {
+  const table = root.querySelector<HTMLTableElement>("#result_list");
+  if (!table) return;
+  const headers = table.querySelectorAll<HTMLTableCellElement>("thead th");
+  if (!headers.length) return;
+  const rows = table.querySelectorAll<HTMLTableRowElement>("tbody tr");
+  rows.forEach((row) => {
+    const cells = row.querySelectorAll<HTMLTableCellElement>("td, th");
+    let headerIndex = 0;
+    cells.forEach((cell) => {
+      if (cell.hasAttribute("data-label")) return;
+      // Skip cells whose column index is out of range (e.g. extra action cols)
+      if (headerIndex >= headers.length) return;
+      // Extract clean header text (ignores sort arrows, links, etc.)
+      const headerText = headers[headerIndex].textContent?.trim() || "";
+      if (headerText) {
+        cell.setAttribute("data-label", headerText);
+      }
+      headerIndex++;
+    });
+  });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => bindCardLabels(), { once: true });
+} else {
+  bindCardLabels();
+}
+document.body.addEventListener("htmx:afterSwap", () => bindCardLabels());
