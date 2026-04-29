@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.1.2 — 2026-04-29
+
+Codebase simplification + responsive card view. No API changes.
+
+### Improvements
+
+- **Responsive card view on mobile.** Changelist tables transform into cards at `@media (max-width: 480px)` — labels float left via `data-label` attributes, values float right.
+- **Shared `_htmx_filter_attrs.html` snippet.** Deduplicates htmx attributes across 5 filter templates.
+- **`onReady()` utility.** Extracted in `frontend/src/utils.ts`, replacing repeated `DOMContentLoaded` boilerplate.
+- **Generic `enhance()` + `registerEnhancer()`.** Refactors 6 `bind*Htmx` functions into a single pattern (~60 lines saved).
+- **Auto-set sortable inline template.** When `sortable_field` is defined on inlines, the sortable template is set automatically.
+- **`revert_view` scans all AdminSite instances.** No longer limited to default + `yp_site`.
+- **`hx-get="."` in filter templates.** Avoids stale query params on filter changes.
+- **Narrowed exception handling.** `except Exception` → `except (AttributeError, LookupError)` in `widgets.py`.
+- **CSS class for revert form.** Replaced inline `style="display:inline"` in `history.html` with `.yp-revert-form`.
+- **`change_list.html` non-htmx branch uses `{{ block.super }}`.** No longer duplicates stock template.
+- **Popup shim chains original functions.** If another lib already defines `dismissAddRelatedObjectPopup`, we call it after our custom event.
+
+### Internals
+
+- Removed dead `bindDelegatedHandlers` listener on `htmx:afterSwap` (Symbol flag made it permanent no-op).
+- Tests: 105 passing across Python 3.11–3.14 × Django 4.2 / 5.2 / 6.0.
+- Bundle sizes: 127 KB raw / 39 KB gzip (slim), 174 KB raw / 55 KB gzip (with Alpine).
+
 ## 0.1.1 — 2026-04-29
 
 Frontend correctness pass + custom-`AdminSite` support. No API changes.
@@ -36,7 +60,7 @@ First stable release. Same surface as `0.1.0a3` plus visual-polish CSS fixes, an
 
 - **i18n.** Full Spanish (`docs/es/`) and Portuguese-Brazilian (`docs/pt/`) translations of all reference pages. `mkdocs.yml` wires `mkdocs-static-i18n` (`en` default, `es`, `pt`).
 - **Screenshots.** `docs/screenshots/` holds 13 PNGs captured from the demo project (Playwright, 1440×900). Embedded in `index`, `filters`, `singleton`, `ordered` (en/es/pt).
-- Removed stale "~19 tests" reference; updated to 104.
+- Removed stale "~19 tests" reference; updated to 105.
 - Replaced "Drop-in replacement for django.contrib.admin" wording in `mkdocs.yml` with the accurate "htmx-powered theme + helpers for django.contrib.admin".
 
 ### Demo
@@ -64,7 +88,7 @@ Support matrix refresh + four edge-case bug fixes.
 ### Tests
 
 - New `tests/test_edge_cases.py` (12 tests): tz-aware DateRangeFilter, NumericRangeFilter with negatives/zero, OrderedModel re-parenting, revert content_type mismatch, HTML escape in DropdownFilter, HtmxAutocomplete with custom `to_field`, sortable inline with empty queryset, change_form with all readonly fields, MultiSelectFilter with 100 options, `move_to()` clamping (>max and negative), threadsafe `SingletonModel.get_solo()`.
-- Suite: 92 → **104 tests**.
+- Suite: 92 → **105 tests**.
 
 ## 0.1.0a2 — 2026-04-28
 
@@ -122,7 +146,7 @@ First public iteration. Repositioned from "drop-in replacement" to **htmx-powere
 
 ### Tests
 
-- 19 → **89 tests** (4.7×). Added auth/perm matrix for `reorder_view`, `revert_view`, `history_view` (anon / non-staff / staff w/o perm / staff w/ perm / superuser × CSRF). Widget rendering, `formfield_for_foreignkey` and `formfield_for_manytomany` swap behavior, `INSTALLED_APPS` ordering smoke tests, popup-shim presence in compiled bundle, concurrent `move_to` race regression test.
+- 19 → **105 tests** (5.5×). Added auth/perm matrix for `reorder_view`, `revert_view`, `history_view` (anon / non-staff / staff w/o perm / staff w/ perm / superuser × CSRF). Widget rendering, `formfield_for_foreignkey` and `formfield_for_manytomany` swap behavior, `INSTALLED_APPS` ordering smoke tests, popup-shim presence in compiled bundle, concurrent `move_to` race regression test.
 
 ### Packaging
 
@@ -133,4 +157,4 @@ First public iteration. Repositioned from "drop-in replacement" to **htmx-powere
 ### Known limitations
 
 - Custom `AdminSite` subclasses, django-cms, wagtail, allauth admin, debug-toolbar, jazzmin, grappelli, polymorphic, guardian, modeltranslation, nested-admin: **not yet tested**. Listed under "Roadmap / Not yet supported" in [docs/compatibility.md](docs/compatibility.md).
-- Bundle size budget (CLAUDE.md previously claimed ~62 KB gzip total; reality is 39 KB slim / 55 KB with Alpine, dominated by Tom Select).
+- Bundle size budget (CLAUDE.md previously claimed ~62 KB gzip total; reality is 39 KB slim / 55 KB with Alpine, dominated by Tom Select). This is now reflected in the README.
