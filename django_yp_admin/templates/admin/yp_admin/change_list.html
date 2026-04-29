@@ -22,7 +22,7 @@
         {% block search %}{% search_form cl %}{% endblock %}
         {% block date_hierarchy %}{% if cl.date_hierarchy %}{% date_hierarchy cl %}{% endif %}{% endblock %}
 
-        <div id="changelist-form" hx-target="this" hx-swap="outerHTML" hx-push-url="true">
+        <div id="changelist-form" hx-target="this" hx-select="#changelist-form" hx-swap="outerHTML" hx-push-url="true">
         <form id="changelist-form-inner" method="post"{% if cl.formset and cl.formset.is_multipart %} enctype="multipart/form-data"{% endif %} novalidate>{% csrf_token %}
             {% if cl.formset %}
                 <div>{{ cl.formset.management_form }}</div>
@@ -45,11 +45,11 @@
                         <summary>{% translate 'Facets' %}</summary>
                         {% if cl.is_facets_optional %}<a href="{% if cl.add_facets %}{{ cl.remove_facet_link }}{% else %}{{ cl.add_facet_link }}{% endif %}"
                             hx-get="{% if cl.add_facets %}{{ cl.remove_facet_link }}{% else %}{{ cl.add_facet_link }}{% endif %}"
-                            hx-target="#changelist-form" hx-push-url="true">
+                            hx-target="#changelist-form" hx-select="#changelist-form" hx-swap="outerHTML" hx-push-url="true">
                             {% if cl.add_facets %}{% translate 'Hide counts' %}{% else %}{% translate 'Show counts' %}{% endif %}
                         </a>{% endif %}
                         {% if cl.has_active_filters %}<a href="{{ cl.clear_all_filters_qs }}"
-                            hx-get="{{ cl.clear_all_filters_qs }}" hx-target="#changelist-form" hx-push-url="true">
+                            hx-get="{{ cl.clear_all_filters_qs }}" hx-target="#changelist-form" hx-select="#changelist-form" hx-swap="outerHTML" hx-push-url="true">
                             {% translate "Clear all filters" %}</a>{% endif %}
                     </details>{% endif %}
                     {% for spec in cl.filter_specs %}{% admin_list_filter cl spec %}{% endfor %}

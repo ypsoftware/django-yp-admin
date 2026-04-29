@@ -3,8 +3,8 @@
 <html lang="{{ LANGUAGE_CODE|default:"en-us" }}" dir="{{ LANGUAGE_BIDI|yesno:'rtl,ltr,auto' }}" data-admin-utc-offset="{% now "Z" %}">
 <head>
 <title>{% block title %}{% endblock %}</title>
-<link rel="stylesheet" href="{% static 'yp_admin/css/yp-admin.css' %}">
-<script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+{# yp-admin.css and yp-admin.js are loaded in base_site.html so they are
+   present on every admin page while keeping base.html clean for custom sites. #}
 {% block extrastyle %}{% endblock %}
 {% block extrahead %}{% endblock %}
 {% block responsive %}
@@ -16,7 +16,7 @@
 {% load i18n %}
 
 <body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}"
-  data-admin-utc-offset="{% now "Z" %}" hx-boost="true">
+  data-admin-utc-offset="{% now "Z" %}">
 
 <a href="#content-start" class="skip-to-content-link">{% translate 'Skip to main content' %}</a>
 
@@ -63,16 +63,18 @@
     {% endblock %}
     <!-- END Header -->
 
-    {% block breadcrumbs %}
+    {% block nav-breadcrumbs %}
         <nav aria-label="{% translate 'Breadcrumbs' %}">
+            {% block breadcrumbs %}
             <div class="breadcrumbs">
                 <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
             </div>
+            {% endblock %}
         </nav>
     {% endblock %}
     {% endif %}
 
-    <main id="main" hx-target="#content" hx-swap="innerHTML">
+    <main id="main">
     {% block messages %}
         {% if messages %}
             <ul class="messagelist">
@@ -99,8 +101,8 @@
     </div>
     <!-- END Content -->
 
-    {% block footer %}<footer id="footer"></footer>{% endblock %}
     </main>
+    {% block footer %}<footer id="footer"></footer>{% endblock %}
 </div>
 <!-- END Container -->
 

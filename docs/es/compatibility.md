@@ -1,7 +1,7 @@
 # Compatibilidad
 
-!!! warning "v0.1, pre-alfa — lee esto primero"
-    `django-yp-admin` es un **tema impulsado por htmx + helpers** para `django.contrib.admin`, **no** un reemplazo completo. La suite de tests actual (104 tests) ejercita el tema, los helpers y una porción mínima de las integraciones opcionales. Las afirmaciones de compatibilidad de abajo describen **intención de diseño**, no garantías validadas por tests de regresión.
+!!! warning "v0.1 — lee esto primero"
+    `django-yp-admin` es un **tema impulsado por htmx + helpers** para `django.contrib.admin`, **no** un reemplazo completo. La suite de tests actual (105 tests) ejercita el tema, los helpers y una porción mínima de las integraciones opcionales. Las afirmaciones de compatibilidad de abajo describen **intención de diseño**, no garantías validadas por tests de regresión.
 
 Esta página documenta lo que se preserva por diseño, lo que se sabe que se rompe y lo que todavía no está soportado.
 

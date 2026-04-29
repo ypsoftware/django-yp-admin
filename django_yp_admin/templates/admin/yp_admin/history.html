@@ -22,7 +22,7 @@
             <td>{{ version.revision.comment }}</td>
             <td>
                 <form method="post"
-                      action="{% url 'yp_admin:yp_revert' app_label=opts.app_label model_name=opts.model_name object_id=object_id version_id=version.pk %}"
+                      action="{% url revert_url_name app_label=opts.app_label model_name=opts.model_name object_id=object_id version_id=version.pk %}"
                       style="display:inline">
                     {% csrf_token %}
                     <button type="submit"

@@ -11,7 +11,7 @@
                 {% else %}
                     <a href="?{{ cl.get_query_string|slice:'1:' }}{% if cl.get_query_string %}&{% endif %}{{ cl.page_var }}={{ i }}"
                        hx-get="?{{ cl.get_query_string|slice:'1:' }}{% if cl.get_query_string %}&{% endif %}{{ cl.page_var }}={{ i }}"
-                       hx-target="#changelist-form"
+                       hx-target="#changelist-form" hx-select="#changelist-form" hx-swap="outerHTML"
                        hx-push-url="true"
                        {% if i == cl.paginator.num_pages %}class="end"{% endif %}>{{ i }}</a>
                 {% endif %}

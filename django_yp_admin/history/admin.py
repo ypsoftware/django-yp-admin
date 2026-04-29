@@ -79,6 +79,7 @@ class VersionAdmin:
             .select_related("revision", "revision__user")
             .order_by("-revision__created_at")
         )
+        revert_url_name = "%s:yp_revert" % self.admin_site.name
         context = {
             **self.admin_site.each_context(request),
             "opts": opts,
@@ -88,6 +89,7 @@ class VersionAdmin:
             "original": obj,
             "versions": versions,
             "title": "History: %s" % (obj or object_id),
+            "revert_url_name": revert_url_name,
             **(extra_context or {}),
         }
         return render(request, "admin/yp_admin/history.html", context)

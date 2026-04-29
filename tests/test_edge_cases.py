@@ -110,13 +110,6 @@ def test_date_range_filter_with_tz_aware_datetimes_no_warnings():
         assert ids == sorted([a.pk, a2.pk])
 
     naive_warnings = [w for w in caught if "naive" in str(w.message).lower() or "aware" in str(w.message).lower()]
-    if naive_warnings:
-        pytest.xfail(
-            "bug: DateRangeFilter applied to a DateTimeField produces naive "
-            "datetimes when USE_TZ=True, triggering RuntimeWarning. The parser "
-            "should make the bound aware (or compare as date). "
-            "See django_yp_admin/filters.py:182-206."
-        )
     assert not naive_warnings, [str(w.message) for w in naive_warnings]
 
 
@@ -461,12 +454,6 @@ def test_move_to_position_larger_than_queryset_clamps():
 
     t0.refresh_from_db()
     # Should clamp to last (max existing) — i.e. 2
-    if t0.order == 99:
-        pytest.xfail(
-            "bug: OrderedModel.move_to() with new_order > max(order) does not "
-            "clamp; leaves orphan position 99 and gaps in (group, order). "
-            "See django_yp_admin/models.py:159-213."
-        )
     assert t0.order == max(orders)
 
 
@@ -481,11 +468,7 @@ def test_move_to_negative_position_clamps_or_raises():
     except (ValueError, AssertionError):
         return  # documented: raises is acceptable behavior
     except IntegrityError:
-        # PositiveIntegerField CHECK rejected the write. Better than
-        # silent data corruption, but ideally move_to should validate
-        # *before* mutating siblings (which may now leave the table in
-        # a broken transactional state under non-atomic backends).
-        pytest.xfail(
+        pytest.fail(
             "bug: OrderedModel.move_to(negative) bottoms out at the DB "
             "CHECK constraint instead of validating up-front. Should "
             "clamp to 0 or raise ValueError before issuing UPDATEs. "
@@ -496,10 +479,62 @@ def test_move_to_negative_position_clamps_or_raises():
     orders = sorted(Track.objects.filter(album=album).values_list("order", flat=True))
     # No duplicates / no negatives in a PositiveIntegerField world.
     assert len(set(orders)) == len(orders)
-    if t2.order < 0:
-        pytest.xfail(
-            "bug: OrderedModel.move_to(negative) writes a negative value to "
-            "PositiveIntegerField; either clamp to 0 or raise ValueError. "
-            "See django_yp_admin/models.py:159-213."
-        )
     assert t2.order == 0
+
+
+# ---------------------------------------------------------------------------
+# 13. Admin actions must work when htmx_changelist=True
+# ---------------------------------------------------------------------------
+
+
+def _make_action_admin():
+    from django.contrib import admin as django_admin
+    from django_yp_admin import ModelAdmin
+
+    class _ArticleAdmin(ModelAdmin):
+        htmx_changelist = True
+        actions = ["publish_selected"]
+
+        @django_admin.action(description="Publish selected")
+        def publish_selected(self, request, queryset):
+            queryset.update(status="published")
+
+    return _ArticleAdmin
+
+
+def test_htmx_changelist_admin_action_post_works(client_logged):
+    """With htmx_changelist=True, the changelist form POST (actions) must still
+    submit as a normal page request, not get hijacked by htmx attributes."""
+    from django.contrib import admin as django_admin
+
+    ArticleAdminClass = _make_action_admin()
+    site = django_admin.site
+    original = None
+    if site.is_registered(Article):
+        original = site._registry[Article].__class__
+        site.unregister(Article)
+    site.register(Article, ArticleAdminClass)
+    _reset_url_caches()
+    try:
+        a1 = Article.objects.create(title="draft1", status="draft")
+        a2 = Article.objects.create(title="draft2", status="draft")
+
+        resp = client_logged.post(
+            "/admin/testapp/article/",
+            {
+                "action": "publish_selected",
+                "select_across": "0",
+                "_selected_action": [str(a1.pk), str(a2.pk)],
+            },
+        )
+        # Django admin actions return a redirect after success.
+        assert resp.status_code == 302
+        a1.refresh_from_db()
+        a2.refresh_from_db()
+        assert a1.status == "published"
+        assert a2.status == "published"
+    finally:
+        site.unregister(Article)
+        if original is not None:
+            site.register(Article, original)
+        _reset_url_caches()

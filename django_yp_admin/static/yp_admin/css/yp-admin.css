@@ -9,7 +9,7 @@
  * @import with the minified Picnic source. Roughly 10KB after gzip.
  */
 
-@import url('https://unpkg.com/picnic@7.1.0/picnic.min.css');
+@import url('picnic.min.css');
 
 /* =============================================================
    Theme tokens

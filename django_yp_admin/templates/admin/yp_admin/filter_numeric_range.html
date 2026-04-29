@@ -10,7 +10,7 @@
              value="{{ choice.value_gte }}"
              hx-get=""
              hx-trigger="change delay:300ms"
-             hx-target="#changelist-form"
+             hx-target="#changelist-form" hx-select="#changelist-form" hx-swap="outerHTML"
              hx-push-url="true">
     </label>
     <label>
@@ -21,7 +21,7 @@
              value="{{ choice.value_lte }}"
              hx-get=""
              hx-trigger="change delay:300ms"
-             hx-target="#changelist-form"
+             hx-target="#changelist-form" hx-select="#changelist-form" hx-swap="outerHTML"
              hx-push-url="true">
     </label>
     {% for k, v in choice.preserved.items %}

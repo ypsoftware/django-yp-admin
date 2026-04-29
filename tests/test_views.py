@@ -293,9 +293,8 @@ def test_reorder_unknown_pk_returns_404(client, login):
 
 
 def _history_admin():
-    from django.contrib.admin.sites import AdminSite
-
     from django_yp_admin.history.admin import VersionAdmin
+    from django_yp_admin.sites import YpAdminSite
 
     class _Base:
         def get_object(self, request, object_id, from_field=None):
@@ -307,7 +306,7 @@ def _history_admin():
 
     a = ArticleAdmin()
     a.model = Article
-    a.admin_site = AdminSite()
+    a.admin_site = YpAdminSite(name="yp_admin")
     return a
 
 

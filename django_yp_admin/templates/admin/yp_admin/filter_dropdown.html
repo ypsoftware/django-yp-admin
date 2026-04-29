@@ -4,7 +4,7 @@
   <select name="{{ spec.parameter_name|default:spec.field_path }}"
           hx-get=""
           hx-trigger="change delay:300ms"
-          hx-target="#changelist-form"
+          hx-target="#changelist-form" hx-select="#changelist-form" hx-swap="outerHTML"
           hx-push-url="true"
           data-yp-auto-submit="true">
     {% for choice in choices %}

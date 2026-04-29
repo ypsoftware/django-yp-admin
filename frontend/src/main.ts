@@ -27,6 +27,33 @@ window.Alpine = Alpine;
 htmx.config.includeIndicatorStyles = false;
 htmx.config.scrollIntoViewOnBoost = false;
 
+/**
+ * Sync <body class> + <title> when an htmx swap replaces #content.
+ *
+ * Forms POST with hx-target="#content" hx-select="#content". Django returns
+ * either the same form (errors) or a redirected page (success). The chrome
+ * (header, breadcrumbs, body class, title) lives outside #content, so we
+ * mirror body class + title from the response so view-scoped CSS selectors
+ * keep working and the tab title reflects the current page.
+ */
+document.body.addEventListener("htmx:beforeSwap", (evt: Event) => {
+  const e = evt as CustomEvent<{ xhr: XMLHttpRequest; serverResponse: string; target: HTMLElement }>;
+  const target = e.detail?.target;
+  if (!target || target.id !== "content") return;
+  const xhr = e.detail.xhr;
+  const ct = xhr.getResponseHeader("Content-Type") || "";
+  if (!ct.includes("text/html")) return;
+  const html = e.detail.serverResponse;
+  if (!html || html.indexOf("<body") === -1) return;
+  try {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    if (doc.body && doc.body.className !== undefined) {
+      document.body.className = doc.body.className;
+    }
+    if (doc.title) document.title = doc.title;
+  } catch { /* noop */ }
+});
+
 Alpine.start();
 
 /**
@@ -83,3 +110,63 @@ if (document.readyState === "loading") {
 // still call this defensively so a future refactor that moves bindings into
 // the swapped subtree keeps working.
 document.body.addEventListener("htmx:afterSwap", bindDelegatedHandlers);
+
+/**
+ * [data-yp-inline-save] — converts the enclosing <form> into an htmx-driven
+ * inline-save form. Replaces the old inline <script> approach so we stay
+ * CSP-clean (no inline script execution).
+ */
+function bindInlineSave(root: ParentNode = document): void {
+  root.querySelectorAll<HTMLElement>("[data-yp-inline-save]").forEach((el) => {
+    const form = el.closest("form");
+    if (!form || form.hasAttribute("hx-post")) return;
+    const url = el.dataset.ypInlineSaveUrl || window.location.pathname;
+    form.setAttribute("hx-post", url);
+    form.setAttribute("hx-target", "this");
+    form.setAttribute("hx-swap", "outerHTML");
+    window.htmx.process(form);
+  });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    bindInlineSave();
+  }, { once: true });
+} else {
+  bindInlineSave();
+}
+
+document.body.addEventListener("htmx:afterSwap", () => {
+  bindInlineSave();
+});
+
+/**
+ * Wire Django admin change/add forms with htmx so save round-trips swap only
+ * #content instead of full page reloads. Errors render inline; valid saves
+ * follow Django's redirect (htmx fetches the redirect target and selects
+ * #content from it). Chrome stays put.
+ *
+ * We target `form[id$="_form"]` inside #content-main — Django's convention
+ * for the model form (e.g. `user_form`). Skipped when the form already has
+ * hx-post (inline-save shim or popup forms).
+ */
+function bindModelFormHtmx(root: ParentNode = document): void {
+  const main = root.querySelector("#content-main");
+  if (!main) return;
+  const form = main.querySelector<HTMLFormElement>('form[id$="_form"]');
+  if (!form || form.hasAttribute("hx-post")) return;
+  if (form.closest("[data-yp-inline-save]")) return;
+  form.setAttribute("hx-post", form.getAttribute("action") || window.location.pathname);
+  form.setAttribute("hx-target", "#content");
+  form.setAttribute("hx-select", "#content");
+  form.setAttribute("hx-swap", "outerHTML show:window:top");
+  form.setAttribute("hx-push-url", "true");
+  window.htmx.process(form);
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => bindModelFormHtmx(), { once: true });
+} else {
+  bindModelFormHtmx();
+}
+document.body.addEventListener("htmx:afterSwap", () => bindModelFormHtmx());

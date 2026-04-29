@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.1.1 — 2026-04-29
+
+Frontend correctness pass + custom-`AdminSite` support. No API changes.
+
+### Bug fixes
+
+- **htmx swap leaked full `<html>` into `#changelist-form`.** Filter widgets, pagination links, and the facet/clear-filter anchors all set `hx-target="#changelist-form"` but no `hx-select`. With the `hx-boost` body-level inheritance, htmx swapped the entire response (including `<html>`/`<head>`/sidebar chrome) into the changelist container, nesting a fresh page on every interaction. Fix: every htmx-driven changelist control now declares `hx-select="#changelist-form" hx-swap="outerHTML"` explicitly. Removed `hx-boost="true"` from `<body>` — full page reloads between sections (home → list) are fine; htmx is reserved for changelist filter/pagination/save-form swaps.
+- **Body class + `<title>` went stale after htmx swaps.** The chrome (header, breadcrumbs, view-scoped CSS hooks like `body.dashboard`, `body.app-blog`) lives outside `#content`; swapping `#content` left the previous page's body class in place, so view-scoped selectors leaked across pages. Fix: `htmx:beforeSwap` listener mirrors `<body class>` and `<title>` from the response when the swap target is `#content`.
+- **Inline `<script>` in `change_form.html` violated CSP.** `htmx_inline_save` rendered an inline script that wired `hx-post`/`hx-target`/`hx-swap` from `window.location.pathname`. Replaced with a `data-yp-inline-save` marker attribute; `bindInlineSave()` in `main.ts` reads `data-yp-inline-save-url` and calls `htmx.process()` on the enclosing form. CSP `script-src 'self'` now passes without `'unsafe-inline'`.
+- **Form save reloaded the full page.** Add/change forms had no htmx wiring; saving round-tripped the chrome unnecessarily. `bindModelFormHtmx()` now wires `form[id$="_form"]` inside `#content-main` to POST via htmx with `hx-target="#content"`, `hx-select="#content"`, `hx-swap="outerHTML show:window:top"`, `hx-push-url="true"`. Errors render inline; valid saves follow Django's redirect (htmx fetches it and selects `#content`). Skipped when the form already has `hx-post` (inline-save shim, popup forms).
+- **Custom `AdminSite` subclasses broke `yp_reorder` / `yp_revert` URL reverses.** `templatetags/yp_admin.py` and `history/admin.py` hardcoded `admin:` and `yp_admin:` namespaces. Fix: read `admin_site.name` from the bound site and build `{site_name}:yp_reorder` / `{site_name}:yp_revert`. `history.html` reads `revert_url_name` from context.
+- **`OrderedModel.move_to()` sentinel could collide on high-pk rows.** The two-phase update used `max_order + self.pk + 1` as a temporary slot, which on tables with very large pks pushes the value far outside the unique-constraint range and stresses `PositiveIntegerField` bounds. Replaced with `max_order + len(locked) + 1` — small, deterministic, still outside any sibling shift's range.
+- **Picnic CSS was loaded from `unpkg.com`.** Self-hosted as `static/yp_admin/css/picnic.min.css` and imported with a relative URL. Works offline, no third-party CSP allowance, no CDN drift.
+
+### Internals
+
+- `base.html` restored to Django stock structure (`{% block nav-breadcrumbs %}` wrapping `{% block breadcrumbs %}`); third-party templates that override only `breadcrumbs` keep working. Footer moved outside `<main>`.
+- Removed three `xfail` markers in `tests/test_edge_cases.py` — the underlying bugs (DateRangeFilter naive datetime warnings, `move_to()` clamp >max, negative position) were already fixed in `0.1.0a3`/`0.1.0`; the markers are now plain assertions.
+- New test: htmx_changelist + admin actions still POST normally (regression guard for the changelist form wrapper).
+
 ## 0.1.0 — 2026-04-28
 
 First stable release. Same surface as `0.1.0a3` plus visual-polish CSS fixes, an `OrderedModel` correctness fix for non-FK grouping fields, multi-language documentation, and screenshots embedded in docs.

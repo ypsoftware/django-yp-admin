@@ -17,8 +17,6 @@
 {% block form_top %}
 {{ block.super }}
 {% if htmx_inline_save %}
-<script>document.currentScript.parentElement.setAttribute("hx-post", window.location.pathname);
-document.currentScript.parentElement.setAttribute("hx-target", "this");
-document.currentScript.parentElement.setAttribute("hx-swap", "outerHTML");</script>
+<div data-yp-inline-save data-yp-inline-save-url="{{ request.path }}" hidden></div>
 {% endif %}
 {% endblock %}

@@ -17,9 +17,11 @@ def yp_inline_reorder_url(inline_admin_formset):
     """
     model = inline_admin_formset.opts.model
     meta = model._meta
+    admin_site = getattr(inline_admin_formset.opts, "admin_site", None)
+    site_name = getattr(admin_site, "name", "admin")
     try:
         return reverse(
-            "admin:yp_reorder",
+            f"{site_name}:yp_reorder",
             args=[meta.app_label, meta.model_name],
         )
     except NoReverseMatch:

@@ -5,7 +5,7 @@
 `django-yp-admin` is an **htmx-powered admin theme plus a small set of helpers** for `django.contrib.admin`. It ships template overrides (Picnic CSS, native HTML5 widgets, htmx) and reusable abstract models and admin mixins (OrderedModel, SingletonModel, lightweight history, htmx widgets). It layers on top of the stock `AdminSite`; it is **not** a full drop-in replacement.
 
 !!! note "v0.1"
-    104 tests across Python 3.11–3.14 × Django 4.2 / 5.2 / 6.0. Custom `AdminSite` subclasses and third-party admin packages (**django-cms**, **wagtail**, **allauth**, **django-guardian**, **django-polymorphic**, **django-reversion**, **django-import-export** end-to-end) are **not yet validated**. See [Compatibility](compatibility.md).
+    105 tests across Python 3.11–3.14 × Django 4.2 / 5.2 / 6.0. Custom `AdminSite` subclasses and third-party admin packages (**django-cms**, **wagtail**, **allauth**, **django-guardian**, **django-polymorphic**, **django-reversion**, **django-import-export** end-to-end) are **not yet validated**. See [Compatibility](compatibility.md).
 
 ## Visual tour
 

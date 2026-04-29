@@ -217,7 +217,7 @@ class OrderedModel(models.Model):
             # max(order)+pk+1, guaranteed positive and unique per row, and
             # outside the range any sibling shift will touch.
             max_order = self._sibling_qs().aggregate(_m=Max("order"))["_m"] or 0
-            sentinel = max_order + self.pk + 1
+            sentinel = max_order + len(locked) + 1
             mgr.filter(pk=self.pk).update(order=sentinel)
 
             if new_order > current:
