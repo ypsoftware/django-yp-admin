@@ -13,6 +13,7 @@ import "./autocomplete";
 import "./sortable";
 import "./nested-inline";
 import "./popup-shim";
+import { onReady } from "./utils";
 
 declare global {
   interface Window {
@@ -100,16 +101,39 @@ function bindDelegatedHandlers(): void {
   );
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", bindDelegatedHandlers, { once: true });
-} else {
-  bindDelegatedHandlers();
+onReady(bindDelegatedHandlers);
+
+/**
+ * Generic enhancer: adds htmx attributes to matching elements and calls
+ * htmx.process(). Idempotent — skips elements that already have the first
+ * attribute.
+ */
+function enhance(
+  selector: string,
+  attrs: Record<string, string>,
+  processTarget = true,
+): (root?: ParentNode) => void {
+  const firstAttr = Object.keys(attrs)[0];
+  return (root: ParentNode = document) => {
+    root.querySelectorAll<HTMLElement>(selector).forEach((el) => {
+      if (el.hasAttribute(firstAttr)) return;
+      Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+      if (processTarget) window.htmx.process(el);
+    });
+  };
 }
 
-// htmx swaps replace fragments but the document-level listeners persist; we
-// still call this defensively so a future refactor that moves bindings into
-// the swapped subtree keeps working.
-document.body.addEventListener("htmx:afterSwap", bindDelegatedHandlers);
+/**
+ * Register an enhancer to run on DOM ready and after every htmx swap.
+ */
+function registerEnhancer(fn: (root?: ParentNode) => void): void {
+  onReady(() => fn());
+  document.body.addEventListener("htmx:afterSwap", () => fn());
+}
+
+// ============================================================
+// Enhancers
+// ============================================================
 
 /**
  * [data-yp-inline-save] — converts the enclosing <form> into an htmx-driven
@@ -127,28 +151,11 @@ function bindInlineSave(root: ParentNode = document): void {
     window.htmx.process(form);
   });
 }
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => {
-    bindInlineSave();
-  }, { once: true });
-} else {
-  bindInlineSave();
-}
-
-document.body.addEventListener("htmx:afterSwap", () => {
-  bindInlineSave();
-});
+registerEnhancer(bindInlineSave);
 
 /**
  * Wire Django admin change/add forms with htmx so save round-trips swap only
- * #content instead of full page reloads. Errors render inline; valid saves
- * follow Django's redirect (htmx fetches the redirect target and selects
- * #content from it). Chrome stays put.
- *
- * We target `form[id$="_form"]` inside #content-main — Django's convention
- * for the model form (e.g. `user_form`). Skipped when the form already has
- * hx-post (inline-save shim or popup forms).
+ * #content instead of full page reloads.
  */
 function bindModelFormHtmx(root: ParentNode = document): void {
   const main = root.querySelector("#content-main");
@@ -163,76 +170,48 @@ function bindModelFormHtmx(root: ParentNode = document): void {
   form.setAttribute("hx-push-url", "true");
   window.htmx.process(form);
 }
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => bindModelFormHtmx(), { once: true });
-} else {
-  bindModelFormHtmx();
-}
-document.body.addEventListener("htmx:afterSwap", () => bindModelFormHtmx());
+registerEnhancer(bindModelFormHtmx);
 
 /**
- * Enhance the changelist search form with htmx attributes so search
- * submissions swap only #changelist-form instead of full page reloads.
- *
- * Django's stock {% search_form cl %} renders a plain <form id="changelist-search">
- * with method="get". We add hx-get/hx-target/hx-select/hx-swap/hx-push-url
- * so it behaves like the rest of the changelist.
+ * Enhance the changelist search form with htmx attributes.
  */
-function bindSearchFormHtmx(root: ParentNode = document): void {
+const bindSearchFormHtmx = enhance("form#changelist-search", {
+  "hx-target": "#changelist-form",
+  "hx-select": "#changelist-form",
+  "hx-swap": "outerHTML show:window:top",
+  "hx-push-url": "true",
+  "hx-trigger": "submit changed delay:300ms, search",
+});
+registerEnhancer((root = document) => {
   const form = root.querySelector<HTMLFormElement>("form#changelist-search");
   if (!form || form.hasAttribute("hx-get")) return;
   form.setAttribute("hx-get", form.getAttribute("action") || window.location.href);
-  form.setAttribute("hx-target", "#changelist-form");
-  form.setAttribute("hx-select", "#changelist-form");
-  form.setAttribute("hx-swap", "outerHTML show:window:top");
-  form.setAttribute("hx-push-url", "true");
-  // Debounce search to avoid excessive requests while typing
-  form.setAttribute("hx-trigger", "submit changed delay:300ms, search");
-  window.htmx.process(form);
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => bindSearchFormHtmx(), { once: true });
-} else {
-  bindSearchFormHtmx();
-}
-document.body.addEventListener("htmx:afterSwap", () => bindSearchFormHtmx());
+  bindSearchFormHtmx(root);
+});
 
 /**
- * Enhance changelist column header sort links with htmx so sorting
- * swaps only #changelist-form instead of full page reloads.
- *
- * Django renders sort links as plain <a> tags inside <th class="sorted">
- * headers. We add hx-get/hx-target/hx-select/hx-swap/hx-push-url to each.
+ * Enhance changelist column header sort links with htmx.
  */
-function bindColumnSortHtmx(root: ParentNode = document): void {
+const bindColumnSortHtmx = enhance("th a[href*='o=']", {
+  "hx-target": "#changelist-form",
+  "hx-select": "#changelist-form",
+  "hx-swap": "outerHTML show:window:top",
+  "hx-push-url": "true",
+});
+registerEnhancer((root = document) => {
   const container = root.querySelector("#changelist-form");
   if (!container) return;
   const links = container.querySelectorAll<HTMLAnchorElement>("th a[href*='o=']");
   links.forEach((link) => {
     if (link.hasAttribute("hx-get")) return;
     link.setAttribute("hx-get", link.getAttribute("href") || "");
-    link.setAttribute("hx-target", "#changelist-form");
-    link.setAttribute("hx-select", "#changelist-form");
-    link.setAttribute("hx-swap", "outerHTML show:window:top");
-    link.setAttribute("hx-push-url", "true");
-    window.htmx.process(link);
   });
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => bindColumnSortHtmx(), { once: true });
-} else {
-  bindColumnSortHtmx();
-}
-document.body.addEventListener("htmx:afterSwap", () => bindColumnSortHtmx());
+  bindColumnSortHtmx(container);
+});
 
 /**
  * After an htmx swap on the change form, scroll to the first validation
- * error and focus the first invalid field. This mirrors Django admin's
- * stock behavior where the page scrolls to the errornote on validation
- * failure.
+ * error and focus the first invalid field.
  */
 function scrollToFirstError(root: ParentNode = document): void {
   const errornote = root.querySelector(".errornote");
@@ -257,10 +236,6 @@ document.body.addEventListener("htmx:afterSwap", (evt: Event) => {
 /**
  * Inject `data-label` attributes on changelist <td> cells so CSS can
  * display floating labels in card view on small screens.
- *
- * Reads header text from each <th> in the <thead> and copies it as
- * `data-label` on the corresponding <td> in every <tbody> row.
- * Idempotent — skips cells that already have the attribute.
  */
 function bindCardLabels(root: ParentNode = document): void {
   const table = root.querySelector<HTMLTableElement>("#result_list");
@@ -273,9 +248,7 @@ function bindCardLabels(root: ParentNode = document): void {
     let headerIndex = 0;
     cells.forEach((cell) => {
       if (cell.hasAttribute("data-label")) return;
-      // Skip cells whose column index is out of range (e.g. extra action cols)
       if (headerIndex >= headers.length) return;
-      // Extract clean header text (ignores sort arrows, links, etc.)
       const headerText = headers[headerIndex].textContent?.trim() || "";
       if (headerText) {
         cell.setAttribute("data-label", headerText);
@@ -284,10 +257,4 @@ function bindCardLabels(root: ParentNode = document): void {
     });
   });
 }
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => bindCardLabels(), { once: true });
-} else {
-  bindCardLabels();
-}
-document.body.addEventListener("htmx:afterSwap", () => bindCardLabels());
+registerEnhancer(bindCardLabels);

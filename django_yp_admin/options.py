@@ -67,6 +67,11 @@ class _InlineMixin:
     htmx_lazy: bool = False
     sortable_field: str | None = None
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.sortable_field and not hasattr(self, "template"):
+            self.template = "admin/yp_admin/edit_inline/tabular_sortable.html"
+
 
 class StackedInline(_InlineMixin, DjangoStackedInline):
     pass

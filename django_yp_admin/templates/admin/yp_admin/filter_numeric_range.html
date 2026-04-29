@@ -8,10 +8,7 @@
              step="any"
              name="{{ choice.param_gte }}"
              value="{{ choice.value_gte }}"
-             hx-get=""
-             hx-trigger="change delay:300ms"
-             hx-target="#changelist-form" hx-select="#changelist-form" hx-swap="outerHTML"
-             hx-push-url="true">
+             {% include "admin/yp_admin/_htmx_filter_attrs.html" %}>
     </label>
     <label>
       {% translate "Max" %}
@@ -19,10 +16,7 @@
              step="any"
              name="{{ choice.param_lte }}"
              value="{{ choice.value_lte }}"
-             hx-get=""
-             hx-trigger="change delay:300ms"
-             hx-target="#changelist-form" hx-select="#changelist-form" hx-swap="outerHTML"
-             hx-push-url="true">
+             {% include "admin/yp_admin/_htmx_filter_attrs.html" %}>
     </label>
     {% for k, v in choice.preserved.items %}
       <input type="hidden" name="{{ k }}" value="{{ v }}">

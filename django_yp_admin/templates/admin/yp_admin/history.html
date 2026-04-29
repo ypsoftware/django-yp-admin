@@ -22,8 +22,8 @@
             <td>{{ version.revision.comment }}</td>
             <td>
                 <form method="post"
-                      action="{% url revert_url_name app_label=opts.app_label model_name=opts.model_name object_id=object_id version_id=version.pk %}"
-                      style="display:inline">
+                      class="yp-revert-form"
+                      action="{% url revert_url_name app_label=opts.app_label model_name=opts.model_name object_id=object_id version_id=version.pk %}">
                     {% csrf_token %}
                     <button type="submit"
                             data-yp-confirm="{% trans "Revert to this version?" %}">

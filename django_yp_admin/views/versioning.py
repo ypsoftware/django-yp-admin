@@ -1,13 +1,56 @@
 """Revert view for django-yp-admin versioning."""
 
 from django.apps import apps
+from django.contrib import admin as django_admin
 from django.contrib import messages
+from django.contrib.admin import AdminSite
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.views.decorators.http import require_POST
+
+
+def _find_model_admin(model):
+    """Look up the ModelAdmin for *model* across all registered AdminSites.
+
+    Checks the default Django admin site, the yp-admin site, and any custom
+    AdminSite subclasses that may have been imported into sys.modules.
+    """
+    # 1. Default Django admin site
+    model_admin = django_admin.site._registry.get(model)
+    if model_admin is not None:
+        return model_admin
+
+    # 2. yp-admin site
+    try:
+        from django_yp_admin.sites import site as yp_site
+
+        model_admin = yp_site._registry.get(model)
+        if model_admin is not None:
+            return model_admin
+    except Exception:
+        pass
+
+    # 3. Scan all AdminSite instances reachable from loaded modules.
+    #    This catches custom AdminSite subclasses the user may have mounted.
+    import sys
+
+    for module in list(sys.modules.values()):
+        if module is None:
+            continue
+        for attr_name in dir(module):
+            try:
+                obj = getattr(module, attr_name)
+            except Exception:
+                continue
+            if isinstance(obj, AdminSite) and obj is not django_admin.site:
+                model_admin = obj._registry.get(model)
+                if model_admin is not None:
+                    return model_admin
+
+    return None
 
 
 @require_POST
@@ -39,17 +82,7 @@ def revert_view(request, app_label, model_name, object_id, version_id):
     # only restores fields the user can actually edit through the change
     # form. Without this, a non-superuser with change_* perm could rewrite
     # FKs (owner_id, created_by, ...) by reverting an old snapshot.
-    from django.contrib import admin as django_admin
-
-    model_admin = django_admin.site._registry.get(model)
-    if model_admin is None:
-        # Fall back to YpAdminSite singleton if user mounted only that.
-        try:
-            from django_yp_admin.sites import site as yp_site
-
-            model_admin = yp_site._registry.get(model)
-        except Exception:
-            model_admin = None
+    model_admin = _find_model_admin(model)
     allowed_fields = None
     if model_admin is not None:
         try:

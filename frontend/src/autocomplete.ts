@@ -17,6 +17,7 @@
  */
 
 import TomSelect from "tom-select";
+import { onReady } from "./utils";
 
 /**
  * Minimal HTML entity escape. Use for any user-provided string that will be
@@ -174,8 +175,4 @@ function register(): void {
   document.addEventListener("yp:related-object-deleted", handleRelatedDeleted);
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", register);
-} else {
-  register();
-}
+onReady(register);

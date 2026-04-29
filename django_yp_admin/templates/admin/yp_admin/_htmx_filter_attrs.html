@@ -1,0 +1,3 @@
+{# Shared htmx attributes for filter inputs/selects. #}
+{# hx-get="." resolves to current path without stale query params. #}
+hx-get="." hx-trigger="change delay:300ms" hx-target="#changelist-form" hx-select="#changelist-form" hx-swap="outerHTML" hx-push-url="true"

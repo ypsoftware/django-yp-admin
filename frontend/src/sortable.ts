@@ -4,6 +4,7 @@
  */
 
 import { getCsrfToken } from "./csrf";
+import { onReady } from "./utils";
 
 const INIT_FLAG = "__ypSortableInit";
 
@@ -243,8 +244,4 @@ function register(): void {
   });
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", register);
-} else {
-  register();
-}
+onReady(register);

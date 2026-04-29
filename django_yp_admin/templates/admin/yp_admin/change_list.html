@@ -6,49 +6,7 @@
     {# htmx request — only the swap fragment, no chrome #}
     {% include "admin/yp_admin/change_list_form_fragment.html" %}
 {% else %}
-    {# Full page render #}
-<div id="content-main">
-    {% block object-tools %}
-    <ul class="object-tools">
-        {% block object-tools-items %}
-            {% change_list_object_tools %}
-        {% endblock %}
-    </ul>
-    {% endblock %}
-
-    {% if cl.formset and cl.formset.errors %}
-        <p class="errornote">
-            {% blocktranslate count counter=cl.formset.total_error_count %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktranslate %}
-        </p>
-        {{ cl.formset.non_form_errors }}
-    {% endif %}
-
-    <div class="module{% if cl.has_filters %} filtered{% endif %}" id="changelist">
-        {% block search %}{% search_form cl %}{% endblock %}
-        {% block date_hierarchy %}{% if cl.date_hierarchy %}{% date_hierarchy cl %}{% endif %}{% endblock %}
-
-        {% include "admin/yp_admin/change_list_form_fragment.html" %}
-
-        {% block filters %}
-            {% if cl.has_filters %}
-                <nav id="changelist-filter" aria-labelledby="changelist-filter-header">
-                    <h2 id="changelist-filter-header">{% translate 'Filter' %}</h2>
-                    {% if cl.is_facets_optional or cl.has_active_filters %}<details>
-                        <summary>{% translate 'Facets' %}</summary>
-                        {% if cl.is_facets_optional %}<a href="{% if cl.add_facets %}{{ cl.remove_facet_link }}{% else %}{{ cl.add_facet_link }}{% endif %}"
-                            hx-get="{% if cl.add_facets %}{{ cl.remove_facet_link }}{% else %}{{ cl.add_facet_link }}{% endif %}"
-                            hx-target="#changelist-form" hx-select="#changelist-form" hx-swap="outerHTML" hx-push-url="true">
-                            {% if cl.add_facets %}{% translate 'Hide counts' %}{% else %}{% translate 'Show counts' %}{% endif %}
-                        </a>{% endif %}
-                        {% if cl.has_active_filters %}<a href="{{ cl.clear_all_filters_qs }}"
-                            hx-get="{{ cl.clear_all_filters_qs }}" hx-target="#changelist-form" hx-select="#changelist-form" hx-swap="outerHTML" hx-push-url="true">
-                            {% translate "Clear all filters" %}</a>{% endif %}
-                    </details>{% endif %}
-                    {% for spec in cl.filter_specs %}{% admin_list_filter cl spec %}{% endfor %}
-                </nav>
-            {% endif %}
-        {% endblock %}
-    </div>
-</div>
+    {# Full page render — delegate to stock Django admin template #}
+    {{ block.super }}
 {% endif %}
 {% endblock %}

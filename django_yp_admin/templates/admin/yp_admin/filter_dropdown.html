@@ -2,10 +2,7 @@
 <div class="module yp-filter yp-filter-dropdown">
   <h3>{% blocktranslate with filter_title=title %}By {{ filter_title }}{% endblocktranslate %}</h3>
   <select name="{{ spec.parameter_name|default:spec.field_path }}"
-          hx-get=""
-          hx-trigger="change delay:300ms"
-          hx-target="#changelist-form" hx-select="#changelist-form" hx-swap="outerHTML"
-          hx-push-url="true"
+          {% include "admin/yp_admin/_htmx_filter_attrs.html" %}
           data-yp-auto-submit="true">
     {% for choice in choices %}
       <option value="{{ choice.query_string|default:'?' }}" {% if choice.selected %}selected{% endif %}>

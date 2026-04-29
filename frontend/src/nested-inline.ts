@@ -4,6 +4,7 @@
  */
 
 import htmx from "htmx.org";
+import { onReady } from "./utils";
 
 const LAZY_FLAG = "__ypNestedLazyBound";
 
@@ -88,8 +89,4 @@ function register(): void {
   document.addEventListener("htmx:afterOnLoad", onAddedToDom);
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", register);
-} else {
-  register();
-}
+onReady(register);

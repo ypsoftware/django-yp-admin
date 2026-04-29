@@ -947,6 +947,7 @@ nav.paginator {
 .text-muted { color: var(--yp-muted); }
 .text-danger { color: var(--yp-danger); }
 .flex-container { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+.yp-revert-form { display: inline; }
 .card {
     background: var(--yp-bg);
     border: 1px solid var(--yp-border);

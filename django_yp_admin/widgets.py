@@ -45,7 +45,7 @@ class _HtmxAutocompleteMixin:
         if to_field:
             try:
                 related_pk_attname = remote_field.model._meta.pk.attname
-            except Exception:
+            except (AttributeError, LookupError):
                 related_pk_attname = None
             if to_field != related_pk_attname:
                 params["to_field"] = to_field
