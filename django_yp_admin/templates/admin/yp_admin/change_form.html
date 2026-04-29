@@ -1,4 +1,4 @@
-{% extends "admin/change_form.html" %}
+{% extends request.htmx|yesno:"admin/yp_admin/change_form_fragment_base.html,admin/change_form.html" %}
 {% load i18n admin_urls static admin_modify %}
 
 {% block extrahead %}{{ block.super }}
@@ -8,15 +8,12 @@
 </dialog>
 {% endblock %}
 
-{% block field_sets %}
-{% for fieldset in adminform %}
-    {% include "admin/includes/fieldset.html" with heading_level=2 id_prefix=forloop.counter id_suffix=forloop.counter0 %}
-{% endfor %}
-{% endblock %}
-
-{% block form_top %}
-{{ block.super }}
-{% if htmx_inline_save %}
-<div data-yp-inline-save data-yp-inline-save-url="{{ request.path }}" hidden></div>
+{% block content %}
+{% if request.htmx %}
+    {# htmx request — only the swap fragment, no chrome #}
+    {% include "admin/yp_admin/change_form_fragment.html" %}
+{% else %}
+    {# Full page render — delegate to stock Django admin/change_form.html #}
+    {{ block.super }}
 {% endif %}
 {% endblock %}

@@ -170,3 +170,86 @@ if (document.readyState === "loading") {
   bindModelFormHtmx();
 }
 document.body.addEventListener("htmx:afterSwap", () => bindModelFormHtmx());
+
+/**
+ * Enhance the changelist search form with htmx attributes so search
+ * submissions swap only #changelist-form instead of full page reloads.
+ *
+ * Django's stock {% search_form cl %} renders a plain <form id="changelist-search">
+ * with method="get". We add hx-get/hx-target/hx-select/hx-swap/hx-push-url
+ * so it behaves like the rest of the changelist.
+ */
+function bindSearchFormHtmx(root: ParentNode = document): void {
+  const form = root.querySelector<HTMLFormElement>("form#changelist-search");
+  if (!form || form.hasAttribute("hx-get")) return;
+  form.setAttribute("hx-get", form.getAttribute("action") || window.location.href);
+  form.setAttribute("hx-target", "#changelist-form");
+  form.setAttribute("hx-select", "#changelist-form");
+  form.setAttribute("hx-swap", "outerHTML show:window:top");
+  form.setAttribute("hx-push-url", "true");
+  // Debounce search to avoid excessive requests while typing
+  form.setAttribute("hx-trigger", "submit changed delay:300ms, search");
+  window.htmx.process(form);
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => bindSearchFormHtmx(), { once: true });
+} else {
+  bindSearchFormHtmx();
+}
+document.body.addEventListener("htmx:afterSwap", () => bindSearchFormHtmx());
+
+/**
+ * Enhance changelist column header sort links with htmx so sorting
+ * swaps only #changelist-form instead of full page reloads.
+ *
+ * Django renders sort links as plain <a> tags inside <th class="sorted">
+ * headers. We add hx-get/hx-target/hx-select/hx-swap/hx-push-url to each.
+ */
+function bindColumnSortHtmx(root: ParentNode = document): void {
+  const container = root.querySelector("#changelist-form");
+  if (!container) return;
+  const links = container.querySelectorAll<HTMLAnchorElement>("th a[href*='o=']");
+  links.forEach((link) => {
+    if (link.hasAttribute("hx-get")) return;
+    link.setAttribute("hx-get", link.getAttribute("href") || "");
+    link.setAttribute("hx-target", "#changelist-form");
+    link.setAttribute("hx-select", "#changelist-form");
+    link.setAttribute("hx-swap", "outerHTML show:window:top");
+    link.setAttribute("hx-push-url", "true");
+    window.htmx.process(link);
+  });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => bindColumnSortHtmx(), { once: true });
+} else {
+  bindColumnSortHtmx();
+}
+document.body.addEventListener("htmx:afterSwap", () => bindColumnSortHtmx());
+
+/**
+ * After an htmx swap on the change form, scroll to the first validation
+ * error and focus the first invalid field. This mirrors Django admin's
+ * stock behavior where the page scrolls to the errornote on validation
+ * failure.
+ */
+function scrollToFirstError(root: ParentNode = document): void {
+  const errornote = root.querySelector(".errornote");
+  if (errornote) {
+    errornote.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  const firstError = root.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(
+    ".errors input:not([type=hidden]), .errors textarea, .errors select, input:invalid, textarea:invalid, select:invalid",
+  );
+  if (firstError) {
+    firstError.focus();
+  }
+}
+
+document.body.addEventListener("htmx:afterSwap", (evt: Event) => {
+  const target = (evt as CustomEvent).detail?.target;
+  if (target && target.id === "content") {
+    scrollToFirstError(target);
+  }
+});

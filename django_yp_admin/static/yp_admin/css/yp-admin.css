@@ -367,7 +367,7 @@ table {
    ============================================================= */
 #changelist-filter {
     /* Reset Picnic's <nav> defaults (position:fixed; top:0; full-width navbar)
-       — we use the element semantically, not as a top navigation bar. */
+        — we use the element semantically, not as a top navigation bar. */
     position: static;
     top: auto;
     z-index: auto;
@@ -386,6 +386,11 @@ table {
     & li { padding: 0.15rem 0; }
     & li.selected { font-weight: 600; }
     & details { margin-block-end: 0.5rem; }
+
+    & .htmx-indicator {
+        font-size: 0.75rem;
+        padding: 0.15rem 0.3rem;
+    }
 }
 
 .yp-filter-range {
@@ -600,24 +605,49 @@ nav.paginator {
 }
 
 /* =============================================================
-   htmx indicators / states
-   ============================================================= */
+    htmx indicators / states
+    ============================================================= */
 .htmx-indicator {
     opacity: 0;
     transition: opacity 200ms ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--yp-muted);
+    margin-inline-end: 0.5rem;
+
+    &::before {
+        content: "";
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+        border: 2px solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: yp-spin 600ms linear infinite;
+    }
 }
 .htmx-request .htmx-indicator,
 .htmx-request.htmx-indicator { opacity: 1; }
+
+@keyframes yp-spin {
+    to { transform: rotate(360deg); }
+}
 
 .htmx-request {
     & button, & input[type="submit"] { cursor: progress; }
 }
 
+.submit-row .htmx-indicator {
+    order: -1;
+}
+
 [hx-boost] a:not([href^="#"]):not([target]) { /* boosted links inherit normal styles */ }
 
 /* =============================================================
-   Search form
-   ============================================================= */
+    Search form
+    ============================================================= */
 #toolbar {
     padding: 0.5rem 0.75rem;
     background: var(--yp-row-alt);
@@ -626,11 +656,35 @@ nav.paginator {
 
     & form { display: flex; gap: 0.5rem; flex: 1 1 16rem; }
     & input[type="search"] { flex: 1 1 auto; }
+
+    & .htmx-indicator {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+    }
 }
 
 /* =============================================================
-   Responsive
-   ============================================================= */
+    Responsive
+    ============================================================= */
+
+/* Tablet: 769px – 1024px */
+@media (max-width: 1024px) {
+    #main:has(#nav-sidebar) {
+        grid-template-columns: 14rem minmax(0, 1fr);
+    }
+    #nav-sidebar {
+        padding: 0.5rem;
+        font-size: 0.85rem;
+    }
+    #changelist.filtered {
+        grid-template-columns: minmax(0, 1fr) 12rem;
+    }
+    #changelist-filter {
+        padding: 0.5rem;
+    }
+}
+
+/* Mobile: ≤ 768px */
 @media (max-width: 768px) {
     #main {
         grid-template-columns: minmax(0, 1fr) !important;
@@ -641,6 +695,220 @@ nav.paginator {
 
     form fieldset.module .form-row {
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* Object tools stack vertically */
+    .object-tools {
+        flex-direction: column;
+        align-items: stretch;
+
+        & a, & button {
+            text-align: center;
+            padding: 0.6rem 0.75rem;
+        }
+    }
+
+    /* Header: stack site name and user tools */
+    #header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+
+        & #user-tools {
+            flex-wrap: wrap;
+        }
+    }
+
+    /* Breadcrumbs wrap */
+    .breadcrumbs {
+        font-size: 0.8rem;
+        line-height: 1.6;
+    }
+
+    /* Submit row stacks buttons */
+    .submit-row {
+        flex-direction: column;
+
+        & .deletelink-box {
+            margin-inline-end: 0;
+            margin-block-start: 0.5rem;
+        }
+
+        & input[type="submit"],
+        & a,
+        & button {
+            width: 100%;
+            text-align: center;
+            padding: 0.65rem 0.9rem;
+        }
+    }
+
+    /* Actions toolbar wraps */
+    .actions {
+        flex-direction: column;
+        align-items: stretch;
+
+        & select, & input, & button {
+            width: 100%;
+        }
+    }
+
+    /* Search toolbar stacks */
+    #toolbar {
+        flex-direction: column;
+
+        & form {
+            flex-direction: column;
+        }
+    }
+
+    /* Pagination collapses */
+    nav.paginator {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+
+        & .yp-pagination {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        & .result-count {
+            text-align: center;
+        }
+    }
+
+    /* Filter sidebar stacks below content */
+    #changelist-filter {
+        position: static;
+        width: auto;
+    }
+
+    /* Touch-friendly: larger tap targets */
+    button, input[type="submit"], input[type="button"], .button,
+    .object-tools a, .object-tools button,
+    .yp-pagination a, .yp-pagination span {
+        min-height: 44px;
+        padding: 0.6rem 0.9rem;
+    }
+
+    /* Inline add row link */
+    .inline-group .add-row a {
+        display: block;
+        text-align: center;
+        padding: 0.6rem;
+    }
+}
+
+/* Small mobile: ≤ 480px */
+@media (max-width: 480px) {
+    html { font-size: 13px; }
+
+    #header { padding: 0.4rem 0.5rem; }
+    #content { padding: 0; }
+
+    /* Module padding reduced */
+    .module {
+        margin-block-end: 0.5rem;
+    }
+
+    /* Results table: horizontal scroll with visual cue */
+    .results {
+        position: relative;
+
+        &::after {
+            content: "\2192";
+            position: absolute;
+            right: 0.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            color: var(--yp-muted);
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        &:has(table:only-child):not(:hover)::after {
+            opacity: 0;
+        }
+    }
+
+    /* Tabular inlines: force scroll */
+    .inline-group .tabular table {
+        display: block;
+        overflow-x: auto;
+    }
+}
+
+/* =============================================================
+    Responsive tables — column hiding on narrow screens
+    ============================================================= */
+
+/* Hide action checkbox column on mobile */
+@media (max-width: 768px) {
+    table.changelist {
+        & th.action-checkbox-column,
+        & td.action-checkbox-column {
+            display: none;
+        }
+    }
+}
+
+/* Hide low-priority columns on very small screens when table has
+   the class `yp-responsive-hide-secondary`. Add this class to your
+   ModelAdmin's change_list_template or via Media CSS. */
+@media (max-width: 480px) {
+    table.yp-responsive-hide-secondary {
+        & th.yp-col-secondary,
+        & td.yp-col-secondary {
+            display: none;
+        }
+    }
+}
+
+/* Card-style table for tiny screens — each row becomes a card.
+   Opt-in: add `yp-responsive-cards` class to the results table. */
+@media (max-width: 480px) {
+    table.yp-responsive-cards {
+        display: block;
+
+        & thead { display: none; }
+
+        & tbody, & tr, & td, & th {
+            display: block;
+        }
+
+        & tr {
+            padding: 0.75rem;
+            border-block-end: 1px solid var(--yp-border);
+            position: relative;
+
+            &:nth-child(even) { background: var(--yp-row-alt); }
+            &:hover { background: var(--yp-row-hover); }
+        }
+
+        & td, & th {
+            padding: 0.3rem 0;
+            border: 0;
+            text-align: start;
+
+            &:not(:last-child) {
+                border-block-end: 1px dashed var(--yp-border);
+            }
+        }
+
+        /* Show field name before value using data-label attribute.
+           Template must render: <td data-label="Field name">value</td> */
+        & td[data-label]::before,
+        & th[data-label]::before {
+            content: attr(data-label);
+            display: block;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: var(--yp-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-block-end: 0.15rem;
+        }
     }
 }
 
